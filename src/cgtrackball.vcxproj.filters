@@ -24,11 +24,23 @@
     <Filter Include="Header Files\renderer">
       <UniqueIdentifier>{bb1b6a36-4060-4b94-ab6b-cf78f0361529}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\model">
+    <Filter Include="Header Files\game_model">
+      <UniqueIdentifier>{a07971f9-3f8a-4628-b520-1c5346096be4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game_model">
+      <UniqueIdentifier>{f8efc1b2-65f8-48a7-a82f-68f9610e437a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\graphic_model">
       <UniqueIdentifier>{41b9699e-d732-4f35-a177-f279c94bd3d5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\model">
+    <Filter Include="Source Files\graphic_model">
       <UniqueIdentifier>{e76afcbb-1da1-4cdc-ac18-3170cfbda0b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\texture_binder">
+      <UniqueIdentifier>{0fa4f721-eaaf-4ae8-85d9-b82d34e4743c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\texture_binder">
+      <UniqueIdentifier>{d7b91fe7-2d57-4f0a-aeae-e49ba715810f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,9 +48,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gl\glad\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureBinder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ViewProjectionMatrix.cpp">
@@ -60,25 +69,28 @@
       <Filter>Source Files\renderer</Filter>
     </ClCompile>
     <ClCompile Include="BindedTextureInfo.cpp">
-      <Filter>Source Files\model</Filter>
+      <Filter>Source Files\graphic_model</Filter>
     </ClCompile>
     <ClCompile Include="BindedVertexInfo.cpp">
-      <Filter>Source Files\model</Filter>
+      <Filter>Source Files\graphic_model</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>Source Files\model</Filter>
+      <Filter>Source Files\graphic_model</Filter>
     </ClCompile>
     <ClCompile Include="DragHistory.cpp">
-      <Filter>Source Files\model</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Source Files\model</Filter>
+      <Filter>Source Files\graphic_model</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
-      <Filter>Source Files\model</Filter>
+      <Filter>Source Files\graphic_model</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
-      <Filter>Source Files\model</Filter>
+      <Filter>Source Files\graphic_model</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Source Files\game_model</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureBinder.cpp">
+      <Filter>Source Files\texture_binder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -86,9 +98,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cgut.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureBinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ViewProjectionMatrix.h">
@@ -110,25 +119,28 @@
       <Filter>Header Files\renderer</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Header Files\model</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Header Files\model</Filter>
+      <Filter>Header Files\graphic_model</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
-      <Filter>Header Files\model</Filter>
+      <Filter>Header Files\graphic_model</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>Header Files\model</Filter>
+      <Filter>Header Files\graphic_model</Filter>
     </ClInclude>
     <ClInclude Include="DragHistory.h">
-      <Filter>Header Files\model</Filter>
+      <Filter>Header Files\graphic_model</Filter>
     </ClInclude>
     <ClInclude Include="BindedVertexInfo.h">
-      <Filter>Header Files\model</Filter>
+      <Filter>Header Files\graphic_model</Filter>
     </ClInclude>
     <ClInclude Include="BindedTextureInfo.h">
-      <Filter>Header Files\model</Filter>
+      <Filter>Header Files\graphic_model</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Header Files\game_model</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBinder.h">
+      <Filter>Header Files\texture_binder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
