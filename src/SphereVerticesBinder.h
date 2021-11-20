@@ -1,11 +1,11 @@
-#ifndef __ORB_VERTICES_BINDER_H__
-#define __ORB_VERTICES_BINDER_H__
+#ifndef __SPHERE_VERTICES_BINDER_H__
+#define __SPHERE_VERTICES_BINDER_H__
 
 #include "BindedVertexInfo.h"
 #include "cgmath.h"
 #include "cgut.h"
 
-class OrbVerticesBinder
+class SphereVerticesBinder
 {
 private:
 	static vec3 get_vertex_position(float r, float theta, float pi);

@@ -1,11 +1,10 @@
-#ifndef __SHADER_H__
-#define __SHADER_H__
+#ifndef __VIEW_PROJECTION_MATRIX_H__
+#define __VIEW_PROJECTION_MATRIX_H__
 
 #include "cgmath.h"
 #include "Camera.h"
-#include "DragInfo.h"
 
-class ShaderMatrix
+class ViewProjectionMatrix
 {
 private:
 	mat4	view_matrix;
@@ -14,8 +13,8 @@ private:
 	mat4 calculate_projection_matrix(ivec2 window_size, Camera camera);
 
 public:
-	ShaderMatrix(ivec2 window_size, Camera camera);
-	~ShaderMatrix();
+	ViewProjectionMatrix(ivec2 window_size, Camera camera);
+	~ViewProjectionMatrix();
 
 	void change_view_matrix(Camera camera);
 	void change_projection_matrix(ivec2 window_size, Camera camera);

@@ -4,25 +4,19 @@
 #endif
 #include "cgut.h"		// slee's OpenGL utility
 #include "Camera.h"
-#include "ShaderMatrix.h"
-#include "DragInfo.h"
+#include "ViewProjectionMatrix.h"
+#include "DragHistory.h"
 #include "Light.h"
 #include "Material.h"
-#include "SolarSystemRotationalObject.h"
-#include "SolarSystemOrbitalObject.h"
 #include "BindedVertexInfo.h"
-#include "OrbVerticesBinder.h"
-#include "RingVerticesBinder.h"
 #include "BindedTextureInfo.h"
 #include "TextureBinder.h"
 #include "Renderer.h"
-#include "OrbRenderer.h"
-#include "RingOrbRenderer.h"
-#include "BumpedOrbRenderer.h"
 #include "GameObject.h"
 #include "SphereRenderer.h"
 #include "BlockRenderer.h"
 #include "BlockVerticesBinder.h"
+#include "SphereVerticesBinder.h"
 
 //*************************************
 // global constants
@@ -48,9 +42,9 @@ float prev_time;
 // scene objects
 Camera*		camera = nullptr;
 Light* light = nullptr;
-ShaderMatrix* shader_matrix = nullptr;
+ViewProjectionMatrix* view_projection_matrix = nullptr;
 GameObject* sphere;
-DragInfo* drag_info = nullptr;
+DragHistory* drag_history = nullptr;
 bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
@@ -59,8 +53,6 @@ bool is_polygon_mode = false;
 //*************************************
 
 std::vector<Renderer*> renderers;
-std::vector<SolarSystemRotationalObject*> rotatinal_objects;
-std::vector<SolarSystemOrbitalObject*> orbital_objects;
 
 //*************************************
 
@@ -83,15 +75,6 @@ void update()
 	float moving_time = current_time - prev_time;
 	prev_time = current_time;
 
-	for (auto& object : rotatinal_objects)
-	{
-		object->rotate(moving_time);
-	}
-
-	for (auto& object : orbital_objects)
-	{
-		object->orbit(moving_time);
-	}
 }
 
 void render()
@@ -102,8 +85,8 @@ void render()
 	// notify GL that we use our own program
 	glUseProgram( program );
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, shader_matrix->get_view_matrix());
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, shader_matrix->get_projection_matrix());
+	glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
+	glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
 
 	// setup light properties
 	glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
@@ -126,7 +109,7 @@ void reshape( GLFWwindow* window, int width, int height )
 	// viewport: the window area that are affected by rendering 
 	window_size = ivec2(width,height);
 	glViewport( 0, 0, width, height );
-	shader_matrix->change_projection_matrix(window_size, *camera);
+	view_projection_matrix->change_projection_matrix(window_size, *camera);
 }
 
 void print_help()
@@ -178,7 +161,7 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 			is_left_mouse_pressed = true;
 			dvec2 pos; glfwGetCursorPos(window, &pos.x, &pos.y);
 			vec2 npos = cursor_to_ndc(pos, window_size);
-			drag_info->start(npos);
+			drag_history->start(npos);
 		}
 		else if (action == GLFW_RELEASE)
 		{
@@ -192,28 +175,28 @@ void motion( GLFWwindow* window, double x, double y )
 	if (is_left_mouse_pressed)
 	{
 		vec2 current_position = cursor_to_ndc(dvec2(x, y), window_size);
-		drag_info->change_position(current_position);
+		drag_history->change_position(current_position);
 
 		if (is_left_shift_pressed)
 		{
-			vec2 prev_position = drag_info->get_prev_position();
+			vec2 prev_position = drag_history->get_prev_position();
 			camera->zoom(current_position.y - prev_position.y);
-			shader_matrix->change_view_matrix(*camera);
-			shader_matrix->change_projection_matrix(window_size, *camera);
+			view_projection_matrix->change_view_matrix(*camera);
+			view_projection_matrix->change_projection_matrix(window_size, *camera);
 		}
 		else if (is_left_ctrl_pressed)
 		{
-			vec2 prev_position = drag_info->get_prev_position();
+			vec2 prev_position = drag_history->get_prev_position();
 			camera->pan(current_position - prev_position);
-			shader_matrix->change_view_matrix(*camera);
-			shader_matrix->change_projection_matrix(window_size, *camera);
+			view_projection_matrix->change_view_matrix(*camera);
+			view_projection_matrix->change_projection_matrix(window_size, *camera);
 		}
 		else
 		{
-			vec2 prev_position = drag_info->get_prev_position();
+			vec2 prev_position = drag_history->get_prev_position();
 			camera->track_ball(prev_position, current_position);
-			shader_matrix->change_view_matrix(*camera);
-			shader_matrix->change_projection_matrix(window_size, *camera);
+			view_projection_matrix->change_view_matrix(*camera);
+			view_projection_matrix->change_projection_matrix(window_size, *camera);
 		}
 	}
 }
@@ -245,7 +228,7 @@ void create_solar_system()
 		1000.0f
 	);
 
-	BindedVertexInfo* orb_vertex_info = OrbVerticesBinder::bind();
+	BindedVertexInfo* orb_vertex_info = SphereVerticesBinder::bind();
 	BindedVertexInfo* block_bertex_info = BlockVerticesBinder::bind();
 
 	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/earth.jpg");
@@ -261,8 +244,8 @@ int main( int argc, char* argv[] )
 {
 	window_size = cg_default_window_size(); // initial window size
 	camera = new Camera();
-	shader_matrix = new ShaderMatrix(window_size, *camera);
-	drag_info = new DragInfo();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	drag_history = new DragHistory();
 	light = new Light(
 		vec4(0.0f, 0.0f, 0.0f, 1.0f),
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),

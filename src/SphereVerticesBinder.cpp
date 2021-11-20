@@ -1,6 +1,6 @@
-#include "OrbVerticesBinder.h"
+#include "SphereVerticesBinder.h"
 
-BindedVertexInfo* OrbVerticesBinder::bind()
+BindedVertexInfo* SphereVerticesBinder::bind()
 {
 	GLuint vertex_array = 0;
 	GLuint vertex_buffer = 0;
@@ -17,9 +17,9 @@ BindedVertexInfo* OrbVerticesBinder::bind()
 	const float top_vertex_pi = 0.0f;
 
 	vertex top_vertex = {
-		OrbVerticesBinder::get_vertex_position(radius, top_vertex_theta, top_vertex_pi),
-		OrbVerticesBinder::get_vertex_normal_vector(top_vertex_theta, top_vertex_pi),
-		OrbVerticesBinder::get_texture_coordinate(top_vertex_theta, top_vertex_pi),
+		SphereVerticesBinder::get_vertex_position(radius, top_vertex_theta, top_vertex_pi),
+		SphereVerticesBinder::get_vertex_normal_vector(top_vertex_theta, top_vertex_pi),
+		SphereVerticesBinder::get_texture_coordinate(top_vertex_theta, top_vertex_pi),
 	};
 
 	vertex_list.push_back(top_vertex);
@@ -33,9 +33,9 @@ BindedVertexInfo* OrbVerticesBinder::bind()
 			float pi = (2 * PI / pi_count) * j;
 
 			vertex bottom_vertex = {
-				OrbVerticesBinder::get_vertex_position(radius, theta, pi),
-				OrbVerticesBinder::get_vertex_normal_vector(theta, pi),
-				OrbVerticesBinder::get_texture_coordinate(theta, pi),
+				SphereVerticesBinder::get_vertex_position(radius, theta, pi),
+				SphereVerticesBinder::get_vertex_normal_vector(theta, pi),
+				SphereVerticesBinder::get_texture_coordinate(theta, pi),
 			};
 
 			vertex_list.push_back(bottom_vertex);
@@ -46,9 +46,9 @@ BindedVertexInfo* OrbVerticesBinder::bind()
 	const float bottom_vertex_pi = 0.0f;
 
 	vertex bottom_vertex = {
-		OrbVerticesBinder::get_vertex_position(radius, bottom_vertex_theta, bottom_vertex_pi),
-		OrbVerticesBinder::get_vertex_normal_vector(bottom_vertex_theta, bottom_vertex_pi),
-		OrbVerticesBinder::get_texture_coordinate(bottom_vertex_theta, bottom_vertex_pi),
+		SphereVerticesBinder::get_vertex_position(radius, bottom_vertex_theta, bottom_vertex_pi),
+		SphereVerticesBinder::get_vertex_normal_vector(bottom_vertex_theta, bottom_vertex_pi),
+		SphereVerticesBinder::get_texture_coordinate(bottom_vertex_theta, bottom_vertex_pi),
 	};
 
 	vertex_list.push_back(bottom_vertex);
@@ -130,10 +130,10 @@ BindedVertexInfo* OrbVerticesBinder::bind()
 	vertex_array = cg_create_vertex_array(vertex_buffer, index_buffer);
 	if (!vertex_array) { printf("%s(): failed to create vertex aray\n", __func__); }
 
-    return new BindedVertexInfo(vertex_buffer, index_buffer, vertex_array, index_buffer_size);
+	return new BindedVertexInfo(vertex_buffer, index_buffer, vertex_array, index_buffer_size);
 }
 
-vec3 OrbVerticesBinder::get_vertex_position(float r, float theta, float pi)
+vec3 SphereVerticesBinder::get_vertex_position(float r, float theta, float pi)
 {
 	float sin_theta = sin(theta);
 	float cos_theta = cos(theta);
@@ -143,7 +143,7 @@ vec3 OrbVerticesBinder::get_vertex_position(float r, float theta, float pi)
 	return vec3(r * sin_theta * cos_pi, r * sin_theta * sin_pi, cos_theta);
 }
 
-vec3 OrbVerticesBinder::get_vertex_normal_vector(float theta, float pi)
+vec3 SphereVerticesBinder::get_vertex_normal_vector(float theta, float pi)
 {
 	float sin_theta = sin(theta);
 	float cos_theta = cos(theta);
@@ -153,7 +153,7 @@ vec3 OrbVerticesBinder::get_vertex_normal_vector(float theta, float pi)
 	return vec3(sin_theta * cos_pi, sin_theta * sin_pi, cos_theta);
 }
 
-vec2 OrbVerticesBinder::get_texture_coordinate(float theta, float pi)
+vec2 SphereVerticesBinder::get_texture_coordinate(float theta, float pi)
 {
 	return vec2(pi / (2 * PI), 1 - theta / PI);
 }
