@@ -19,6 +19,10 @@
 #include "OrbRenderer.h"
 #include "RingOrbRenderer.h"
 #include "BumpedOrbRenderer.h"
+#include "GameObject.h"
+#include "SphereRenderer.h"
+#include "BlockRenderer.h"
+#include "BlockVerticesBinder.h"
 
 //*************************************
 // global constants
@@ -45,6 +49,7 @@ float prev_time;
 Camera*		camera = nullptr;
 Light* light = nullptr;
 ShaderMatrix* shader_matrix = nullptr;
+GameObject* sphere;
 DragInfo* drag_info = nullptr;
 bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
@@ -230,35 +235,8 @@ void user_finalize()
 
 void create_solar_system()
 {
-
-	SolarSystemRotationalObject* sun = new SolarSystemRotationalObject({ 0.0f, 0.0f, 0.0f }, 30.0f, 1.2f);
-	SolarSystemOrbitalObject* mercury = new SolarSystemOrbitalObject({ 60.0f, 0.0f, 0.0f }, 4.0f, 3.0f, 1.5f, sun);
-	SolarSystemOrbitalObject* venus = new SolarSystemOrbitalObject({ 80.0f, 0.0f, 0.0f }, 5.0f, 3.0f, 1.9f, sun);
-	SolarSystemOrbitalObject* earth = new SolarSystemOrbitalObject({ 100.0f, 0.0f, 0.0f }, 6.0f, 3.0f, -1.8f, sun);
-	SolarSystemOrbitalObject* mars = new SolarSystemOrbitalObject({ 120.0f, 0.0f, 0.0f }, 7.0f, 3.0f, 1.6f, sun);
-	SolarSystemOrbitalObject* jupiter = new SolarSystemOrbitalObject({ 150.0f, 0.0f, 0.0f }, 10.0f, 3.0f, -1.8f, sun);
-	SolarSystemOrbitalObject* saturn = new SolarSystemOrbitalObject({ 200.0f, 0.0f, 0.0f }, 11.0f, 3.0f, 0.9f, sun);
-	SolarSystemOrbitalObject* uranus = new SolarSystemOrbitalObject({ 250.0f, 0.0f, 0.0f }, 12.0f, 3.0f, -1.1f, sun);
-	SolarSystemOrbitalObject* neptune = new SolarSystemOrbitalObject({ 290.0f, 0.0f, 0.0f }, 5.0f, 3.0f, 1.4f, sun);
-
-	rotatinal_objects.push_back(sun);
-	rotatinal_objects.push_back(mercury);
-	rotatinal_objects.push_back(venus);
-	rotatinal_objects.push_back(earth);
-	rotatinal_objects.push_back(mars);
-	rotatinal_objects.push_back(jupiter);
-	rotatinal_objects.push_back(saturn);
-	rotatinal_objects.push_back(uranus);
-	rotatinal_objects.push_back(neptune);
-
-	orbital_objects.push_back(mercury);
-	orbital_objects.push_back(venus);
-	orbital_objects.push_back(earth);
-	orbital_objects.push_back(mars);
-	orbital_objects.push_back(jupiter);
-	orbital_objects.push_back(saturn);
-	orbital_objects.push_back(uranus);
-	orbital_objects.push_back(neptune);
+	sphere = new GameObject({ 30.0f, 30.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f });
+	GameObject* plain = new GameObject({ -50.0f, -50.0f, -50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f });
 
 	Material* material = new Material(
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),
@@ -268,48 +246,15 @@ void create_solar_system()
 	);
 
 	BindedVertexInfo* orb_vertex_info = OrbVerticesBinder::bind();
-	BindedVertexInfo* ring_vertex_info = RingVerticesBinder::bind();
-	BindedTextureInfo* sun_texture_info = TextureBinder::bind("textures/sun.jpg");
-	BindedTextureInfo* mercury_texture_info = TextureBinder::bind("textures/mercury.jpg");
-	BindedTextureInfo* mercury_bump_texture_info = TextureBinder::bind("textures/mercury-bump.jpg");
-	BindedTextureInfo* mercury_normal_texture_info = TextureBinder::bind("textures/mercury-normal.jpg");
-	BindedTextureInfo* venus_texture_info = TextureBinder::bind("textures/venus.jpg");
-	BindedTextureInfo* venus_bump_texture_info = TextureBinder::bind("textures/venus-bump.jpg");
-	BindedTextureInfo* venus_normal_texture_info = TextureBinder::bind("textures/venus-normal.jpg");
-	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/earth.jpg");
-	BindedTextureInfo* earth_bump_texture_info = TextureBinder::bind("textures/earth-bump.jpg");
-	BindedTextureInfo* earth_normal_texture_info = TextureBinder::bind("textures/earth-normal.jpg");
-	BindedTextureInfo* mars_texture_info = TextureBinder::bind("textures/mars.jpg");
-	BindedTextureInfo* mars_bump_texture_info = TextureBinder::bind("textures/mars=bump.jpg");
-	BindedTextureInfo* mars_normal_texture_info = TextureBinder::bind("textures/mars-normal.jpg");
-	BindedTextureInfo* jupiter_texture_info = TextureBinder::bind("textures/jupiter.jpg");
-	BindedTextureInfo* saturn_texture_info = TextureBinder::bind("textures/saturn.jpg");
-	BindedTextureInfo* saturn_ring_texture_info = TextureBinder::bind("textures/saturn-ring.jpg");
-	BindedTextureInfo* saturn_ring_alpha_texture_info = TextureBinder::bind("textures/saturn-ring-alpha.jpg");
-	BindedTextureInfo* uranus_texture_info = TextureBinder::bind("textures/uranus.jpg");
-	BindedTextureInfo* uranus_ring_texture_info = TextureBinder::bind("textures/uranus-ring.jpg");
-	BindedTextureInfo* uranus_ring_alpha_texture_info = TextureBinder::bind("textures/uranus-ring-alpha.jpg");
-	BindedTextureInfo* neptune_texture_info = TextureBinder::bind("textures/neptune.jpg");
+	BindedVertexInfo* block_bertex_info = BlockVerticesBinder::bind();
 
-	OrbRenderer* sun_renderers = new OrbRenderer(orb_vertex_info, sun_texture_info, sun, material, 0);
-	BumpedOrbRenderer* mercury_renderers = new BumpedOrbRenderer(orb_vertex_info, mercury_texture_info, mercury_bump_texture_info, mercury_normal_texture_info, mercury, material);
-	BumpedOrbRenderer* venus_renderers = new BumpedOrbRenderer(orb_vertex_info, venus_texture_info, venus_bump_texture_info, venus_normal_texture_info, venus, material);
-	BumpedOrbRenderer* earth_renderers = new BumpedOrbRenderer(orb_vertex_info, earth_texture_info, earth_bump_texture_info, earth_normal_texture_info, earth, material);
-	BumpedOrbRenderer* mars_renderers = new BumpedOrbRenderer(orb_vertex_info, mars_texture_info, mars_bump_texture_info, mars_normal_texture_info, mars, material);
-	OrbRenderer* jupiter_renderers = new OrbRenderer(orb_vertex_info, jupiter_texture_info, jupiter, material, 1);
-	RingOrbRenderer* saturn_renderers = new RingOrbRenderer(orb_vertex_info, saturn_texture_info, ring_vertex_info, saturn_ring_texture_info, saturn_ring_alpha_texture_info, saturn, material, 1);
-	RingOrbRenderer* uranus_renderers = new RingOrbRenderer(orb_vertex_info, uranus_texture_info, ring_vertex_info, uranus_ring_texture_info, uranus_ring_alpha_texture_info, uranus, material, 1);
-	OrbRenderer* neptune_renderers = new OrbRenderer(orb_vertex_info, neptune_texture_info, neptune, material, 1);
-	
-	renderers.push_back(sun_renderers);
-	renderers.push_back(mercury_renderers);
-	renderers.push_back(venus_renderers);
-	renderers.push_back(earth_renderers);
-	renderers.push_back(mars_renderers);
-	renderers.push_back(jupiter_renderers);
-	renderers.push_back(saturn_renderers);
-	renderers.push_back(uranus_renderers);
-	renderers.push_back(neptune_renderers);
+	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/earth.jpg");
+
+	SphereRenderer* sphereRenderer = new SphereRenderer(orb_vertex_info, earth_texture_info, sphere, material);
+	BlockRenderer* blockRenderer = new BlockRenderer(block_bertex_info, earth_texture_info, plain, material);
+
+	renderers.push_back(sphereRenderer);
+	renderers.push_back(blockRenderer);
 }
 
 int main( int argc, char* argv[] )

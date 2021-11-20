@@ -55,8 +55,11 @@
   <ItemGroup>
     <ClCompile Include="BindedTextureInfo.cpp" />
     <ClCompile Include="BindedVertexInfo.cpp" />
+    <ClCompile Include="BlockRenderer.cpp" />
+    <ClCompile Include="BlockVerticesBinder.cpp" />
     <ClCompile Include="BumpedOrbRenderer.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="RingVerticesBinder.cpp" />
     <ClCompile Include="DragInfo.cpp" />
     <ClCompile Include="gl\glad\glad.c" />
@@ -71,15 +74,19 @@
     <ClCompile Include="SolarSystemObejct.cpp" />
     <ClCompile Include="SolarSystemOrbitalObject.cpp" />
     <ClCompile Include="SolarSystemRotationalObject.cpp" />
+    <ClCompile Include="SphereRenderer.cpp" />
     <ClCompile Include="TextureBinder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BindedTextureInfo.h" />
     <ClInclude Include="BindedVertexInfo.h" />
+    <ClInclude Include="BlockRenderer.h" />
+    <ClInclude Include="BlockVerticesBinder.h" />
     <ClInclude Include="BumpedOrbRenderer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="cgmath.h" />
     <ClInclude Include="cgut.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="RingVerticesBinder.h" />
     <ClInclude Include="DragInfo.h" />
     <ClInclude Include="Light.h" />
@@ -92,6 +99,7 @@
     <ClInclude Include="SolarSystemObejct.h" />
     <ClInclude Include="SolarSystemOrbitalObject.h" />
     <ClInclude Include="SolarSystemRotationalObject.h" />
+    <ClInclude Include="SphereRenderer.h" />
     <ClInclude Include="TextureBinder.h" />
   </ItemGroup>
   <ItemGroup>
