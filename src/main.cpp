@@ -82,8 +82,6 @@ void change_game_object_direction(GameObject* game_object, vec2 mouse_path)
 	{
 		vec3 axis = cross(forward, up).normalize();
 		vec4 new_up = mat4::rotate(axis, mouse_path.y * 0.5f) * vec4(up.x, up.y, up.z, 1.0f);
-		printf("----------------------------\n");
-		printf("up: %f %f %f\nforward: %f %f %f\naxis: %f %f %f\nnew up: %f %f %f\n", up.x, up.y, up.z, forward.x, forward.y, forward.z, axis.x, axis.y, axis.z, new_up.x, new_up.y, new_up.z);
 		game_object->set_up(vec3(new_up.x, new_up.y, new_up.z));
 	}
 }
