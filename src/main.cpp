@@ -13,6 +13,7 @@
 #include "TextureBinder.h"
 #include "Renderer.h"
 #include "GameObject.h"
+#include "GameAimingObject.h"
 #include "SphereRenderer.h"
 #include "BlockRenderer.h"
 #include "BlockVerticesBinder.h"
@@ -52,7 +53,7 @@ struct {
 Camera*		camera = nullptr;
 Light* light = nullptr;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
-GameObject* sphere;
+GameAimingObject* sphere;
 MousePositionHistory* mouse_position_history = nullptr;
 bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
@@ -65,37 +66,35 @@ std::vector<Renderer*> renderers;
 
 //*************************************
 
-void change_game_object_direction(GameObject* game_object, vec2 mouse_path)
+void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path)
 {
-	vec3 up = game_object->get_up();
-	vec3 forward = game_object->get_forward();
-	float theta = game_object->get_theta();
-
 	float x_threshold = 0.0001f;
 	float y_threhold = 0.0001f;
 
 	if (mouse_path.x >= x_threshold || mouse_path.x <= -x_threshold)
 	{
-		game_object->set_theta(theta - mouse_path.x * 0.5f);
+		game_object->set_theta(game_object->get_theta() - mouse_path.x * 0.5f);
 	}
 	if(mouse_path.y >= y_threhold || mouse_path.y <= -y_threhold)
 	{
-		vec3 axis = cross(forward, up).normalize();
-		vec4 new_up = mat4::rotate(axis, mouse_path.y * 0.5f) * vec4(up.x, up.y, up.z, 1.0f);
-		game_object->set_up(vec3(new_up.x, new_up.y, new_up.z));
+		game_object->set_alpha(game_object->get_alpha() - mouse_path.y * 0.5f);
 	}
 }
 
-void dangle_canera_to_game_object(Camera* cam, GameObject* game_object)
+void dangle_canera_to_game_object(Camera* cam, GameAimingObject* game_object)
 {
 	vec3 location = game_object->get_location();
+	vec3 up = game_object->get_up();
 	vec3 forward = game_object->get_forward();
+	float alpha = game_object->get_alpha();
 
 	vec3 camera_position_offset = vec3(0.0f, 0.0f, 10.0f);
+	vec4 new_up = mat4::rotate(cross(up, forward), alpha) * vec4(up, 0.0f);
+	vec4 new_at = mat4::rotate(cross(up, forward), alpha) * vec4(forward, 0.0f);
 
 	cam->set_eye(location + camera_position_offset);
-	cam->set_up(game_object->get_up());
-	cam->set_at(location + camera_position_offset + forward * 1000.0f);
+	cam->set_up(vec3(new_up.x, new_up.y, new_up.z));
+	cam->set_at(location + camera_position_offset + vec3(new_at.x, new_at.y, new_at.z) * 1000.0f);
 }
 
 vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
@@ -269,7 +268,7 @@ void user_finalize()
 
 void create_solar_system()
 {
-	sphere = new GameObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f);
+	sphere = new GameAimingObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f, 0.0f);
 	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f);
 
 	Material* material = new Material(

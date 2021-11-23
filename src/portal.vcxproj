@@ -59,6 +59,7 @@
     <ClCompile Include="BlockVerticesBinder.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DragHistory.cpp" />
+    <ClCompile Include="GameAimingObject.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="gl\glad\glad.c" />
     <ClCompile Include="Light.cpp" />
@@ -80,6 +81,7 @@
     <ClInclude Include="cgmath.h" />
     <ClInclude Include="cgut.h" />
     <ClInclude Include="DragHistory.h" />
+    <ClInclude Include="GameAimingObject.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
