@@ -81,7 +81,7 @@ void sphere_movement()
 	float speed = sphere->get_speed();
 	if (mov_key.up) {
 		vec3 loc = sphere->get_location();
-		sphere->set_location(loc + vec3(0,1,0)*speed);
+		sphere->set_location(loc + vec3(0, 1, 0)*speed);
 	}
 	if (mov_key.down) {
 		vec3 loc = sphere->get_location();
@@ -242,8 +242,8 @@ void user_finalize()
 
 void create_solar_system()
 {
-	sphere = new GameObject({ 30.0f, 30.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f }, 1.0f);
-	GameObject* plain = new GameObject({ -50.0f, -50.0f, -50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f }, 0.0f);
+	sphere = new GameObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f);
+	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 10.0f }, 0.0f);
 
 	Material* material = new Material(
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),
@@ -271,7 +271,7 @@ int main( int argc, char* argv[] )
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	drag_history = new DragHistory();
 	light = new Light(
-		vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		vec4(0.0f, 0.0f, -1.0f, 0.0f),
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f)
