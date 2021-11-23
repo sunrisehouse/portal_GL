@@ -71,8 +71,8 @@ void change_game_object_direction(GameObject* game_object, vec2 mouse_path)
 	vec3 forward = game_object->get_forward();
 	float theta = game_object->get_theta();
 
-	float x_threshold = 0.0f;
-	float y_threhold = 0.0f;
+	float x_threshold = 0.0001f;
+	float y_threhold = 0.0001f;
 
 	if (mouse_path.x >= x_threshold || mouse_path.x <= -x_threshold)
 	{
@@ -80,8 +80,10 @@ void change_game_object_direction(GameObject* game_object, vec2 mouse_path)
 	}
 	if(mouse_path.y >= y_threhold || mouse_path.y <= -y_threhold)
 	{
-		vec3 axis = cross(up, forward).normalize();
+		vec3 axis = cross(forward, up).normalize();
 		vec4 new_up = mat4::rotate(axis, mouse_path.y * 0.5f) * vec4(up.x, up.y, up.z, 1.0f);
+		printf("----------------------------\n");
+		printf("up: %f %f %f\nforward: %f %f %f\naxis: %f %f %f\nnew up: %f %f %f\n", up.x, up.y, up.z, forward.x, forward.y, forward.z, axis.x, axis.y, axis.z, new_up.x, new_up.y, new_up.z);
 		game_object->set_up(vec3(new_up.x, new_up.y, new_up.z));
 	}
 }
@@ -110,25 +112,25 @@ vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
 	return vec2(npos.x * 2.0f - 1.0f, 1.0f - npos.y * 2.0f);
 }
 
-void sphere_movement()
+void sphere_movement(float moving_time)
 {
 	float speed = sphere->get_speed();
+	vec3 loc = sphere->get_location();
+	vec3 forward = sphere->get_forward();
+	vec3 velocity = vec3(0.0f, 0.0f, 0.0f);
 	if (mov_key.up) {
-		vec3 loc = sphere->get_location();
-		sphere->set_location(loc + vec3(0, 1, 0)*speed);
+		velocity = vec3(forward.x, forward.y, 0.0f).normalize();
 	}
 	if (mov_key.down) {
-		vec3 loc = sphere->get_location();
-		sphere->set_location(loc + vec3(0, -1, 0) * speed);
+		velocity = -vec3(forward.x, forward.y, 0.0f).normalize();
 	}
 	if (mov_key.left) {
-		vec3 loc = sphere->get_location();
-		sphere->set_location(loc + vec3(-1, 0, 0) * speed);
+		velocity = vec3(-forward.y, forward.x, 0.0f).normalize();
 	}
 	if (mov_key.right) {
-		vec3 loc = sphere->get_location();
-		sphere->set_location(loc + vec3(1, 0, 0) * speed);
+		velocity = vec3(forward.y, -forward.x, 0.0f).normalize();
 	}
+	sphere->set_location(loc + velocity * moving_time * 1000.0f);
 }
 
 void update()
@@ -138,7 +140,7 @@ void update()
 	float moving_time = current_time - prev_time;
 	prev_time = current_time;
 
-	sphere_movement();
+	sphere_movement(moving_time);
 
 	vec2 current_position = mouse_position_history->get_current_position();
 	vec2 prev_position = mouse_position_history->get_prev_position();
@@ -195,6 +197,11 @@ void print_help()
 	printf( "- press Home to reset camera\n" );
 	printf("- press 'w' to toggle wireframe\n");
 	printf( "\n" );
+
+	vec4 r1 = mat4::rotate(vec3(-1.0f, 0.0f, 0.0f), 0.3f) * vec4(0.0f, 0.0f, 1.0f, 0.0f);
+	vec4 r2 = mat4::rotate(vec3(0.0f, 1.0f, 0.0f), 0.3f) * vec4(0.0f, 0.0f, 1.0f, 0.0f);
+
+	printf("%f, %f, %f // %f %f %f\n", r1.x, r1.y, r1.z, r2.x, r2.y, r2.z);
 }
 
 void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )

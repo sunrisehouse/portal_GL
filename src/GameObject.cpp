@@ -32,15 +32,15 @@ float GameObject::get_theta()
 vec3 GameObject::get_forward()
 {
 	vec3 origin_up = vec3(0.0f, 0.0f, 1.0f);
-	float cos_value = this->up.dot(origin_up);
-	float alpha = atan(sqrt(1 - cos_value * cos_value) / cos_value);
 	vec4 forward;
 	if (this->up == origin_up) {
 		forward = vec4(0.0f, 1.0f, 0.0f, 0.0f);
 	}
 	else
 	{
-		vec3 axis = cross(this->up, vec3(0.0f, 0.0f, 1.0f)).normalize();
+		float cos_value = this->up.dot(origin_up);
+		float alpha = atan(sqrt(1 - cos_value * cos_value) / cos_value);
+		vec3 axis = cross(vec3(0.0f, 0.0f, 1.0f), this->up).normalize();
 		forward = mat4::rotate(axis, alpha) * vec4(0.0f, 1.0f, 0.0f, 0.0f);
 	}
 
