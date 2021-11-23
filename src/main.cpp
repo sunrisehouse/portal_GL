@@ -17,6 +17,7 @@
 #include "BlockRenderer.h"
 #include "BlockVerticesBinder.h"
 #include "SphereVerticesBinder.h"
+#include "MousePositionHistory.h"
 
 //*************************************
 // global constants
@@ -45,6 +46,7 @@ Light* light = nullptr;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
 GameObject* sphere;
 DragHistory* drag_history = nullptr;
+MousePositionHistory* mouse_position_history = nullptr;
 bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
@@ -55,6 +57,14 @@ bool is_polygon_mode = false;
 std::vector<Renderer*> renderers;
 
 //*************************************
+
+void change_game_object_direction(GameObject* game_object, MousePositionHistory* mouse_position_history)
+{
+	vec2 mouse_path = mouse_position_history->get_current_position();
+
+	game_object->set_up(sphere->get_up() + vec3(0.0f, 0.0f, mouse_path.y * 0.0004f));
+	game_object->set_theta(sphere->get_theta() + mouse_path.x * 0.0004f);
+}
 
 void dangle_canera_to_game_object(Camera* cam, GameObject* game_object)
 {
@@ -87,6 +97,7 @@ void update()
 	float moving_time = current_time - prev_time;
 	prev_time = current_time;
 
+	change_game_object_direction(sphere, mouse_position_history);
 }
 
 void render()
@@ -184,9 +195,10 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 
 void motion( GLFWwindow* window, double x, double y )
 {
+	vec2 current_position = cursor_to_ndc(dvec2(x, y), window_size);
+	mouse_position_history->change_position(current_position);
 	if (is_left_mouse_pressed)
 	{
-		vec2 current_position = cursor_to_ndc(dvec2(x, y), window_size);
 		drag_history->change_position(current_position);
 
 		if (is_left_shift_pressed)
@@ -258,6 +270,7 @@ int main( int argc, char* argv[] )
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	drag_history = new DragHistory();
+	mouse_position_history = new MousePositionHistory();
 	light = new Light(
 		vec4(0.0f, 0.0f, 0.0f, 1.0f),
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),

@@ -64,6 +64,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MousePositionHistory.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SphereRenderer.cpp" />
     <ClCompile Include="SphereVerticesBinder.cpp" />
@@ -82,6 +83,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MousePositionHistory.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SphereRenderer.h" />
     <ClInclude Include="SphereVerticesBinder.h" />

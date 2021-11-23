@@ -92,6 +92,9 @@
     <ClCompile Include="TextureBinder.cpp">
       <Filter>Source Files\texture_binder</Filter>
     </ClCompile>
+    <ClCompile Include="MousePositionHistory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cgmath.h">
@@ -141,6 +144,9 @@
     </ClInclude>
     <ClInclude Include="TextureBinder.h">
       <Filter>Header Files\texture_binder</Filter>
+    </ClInclude>
+    <ClInclude Include="MousePositionHistory.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
