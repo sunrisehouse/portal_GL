@@ -65,12 +65,25 @@ std::vector<Renderer*> renderers;
 
 //*************************************
 
-void change_game_object_direction(GameObject* game_object, MousePositionHistory* mouse_position_history)
+void change_game_object_direction(GameObject* game_object, vec2 mouse_path)
 {
-	vec2 mouse_path = mouse_position_history->get_current_position();
+	vec3 up = game_object->get_up();
+	vec3 forward = game_object->get_forward();
+	float theta = game_object->get_theta();
 
-	// game_object->set_up(sphere->get_up() + vec3(0.0f, 0.0f, mouse_path.y * 0.0004f));
-	game_object->set_theta(sphere->get_theta() + mouse_path.x * 0.0004f);
+	float x_threshold = 0.0f;
+	float y_threhold = 0.0f;
+
+	if (mouse_path.x >= x_threshold || mouse_path.x <= -x_threshold)
+	{
+		game_object->set_theta(theta - mouse_path.x * 0.5f);
+	}
+	if(mouse_path.y >= y_threhold || mouse_path.y <= -y_threhold)
+	{
+		vec3 axis = cross(up, forward).normalize();
+		vec4 new_up = mat4::rotate(axis, mouse_path.y * 0.5f) * vec4(up.x, up.y, up.z, 1.0f);
+		game_object->set_up(vec3(new_up.x, new_up.y, new_up.z));
+	}
 }
 
 void dangle_canera_to_game_object(Camera* cam, GameObject* game_object)
@@ -82,7 +95,7 @@ void dangle_canera_to_game_object(Camera* cam, GameObject* game_object)
 
 	cam->set_eye(location + camera_position_offset);
 	cam->set_up(game_object->get_up());
-	cam->set_at(location + camera_position_offset + forward * 100.0f);
+	cam->set_at(location + camera_position_offset + forward * 1000.0f);
 }
 
 vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
@@ -126,7 +139,15 @@ void update()
 	prev_time = current_time;
 
 	sphere_movement();
-	// change_game_object_direction(sphere, mouse_position_history);
+
+	vec2 current_position = mouse_position_history->get_current_position();
+	vec2 prev_position = mouse_position_history->get_prev_position();
+
+	if (current_position != prev_position) {
+		change_game_object_direction(sphere, current_position - prev_position);
+		mouse_position_history->make_prev_position();
+	}
+
 	dangle_canera_to_game_object(camera, sphere);
 	view_projection_matrix->change_view_matrix(*camera);
 }
@@ -233,6 +254,7 @@ void user_init()
 	glEnable( GL_DEPTH_TEST );								// turn on depth tests
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 }
 
@@ -243,7 +265,7 @@ void user_finalize()
 void create_solar_system()
 {
 	sphere = new GameObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f);
-	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 10.0f }, 0.0f);
+	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f);
 
 	Material* material = new Material(
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),

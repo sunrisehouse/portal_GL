@@ -1,6 +1,6 @@
 #include "GameObject.h"
 
-GameObject::GameObject(vec3 location, vec3 up, float theta, vec3 scale, float speed): location(location), up(up), theta(theta), scale(scale), speed(speed)
+GameObject::GameObject(vec3 location, vec3 up, float theta, vec3 scale, float speed): location(location), up(up.normalize()), theta(theta), scale(scale), speed(speed)
 {
 }
 
@@ -21,7 +21,7 @@ vec3 GameObject::get_up()
 
 void GameObject::set_up(vec3 up)
 {
-	this->up = up;
+	this->up = up.normalize();
 }
 
 float GameObject::get_theta()
@@ -31,7 +31,20 @@ float GameObject::get_theta()
 
 vec3 GameObject::get_forward()
 {
-	vec4 forward = mat4::rotate(this->up, this->theta) * vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	vec3 origin_up = vec3(0.0f, 0.0f, 1.0f);
+	float cos_value = this->up.dot(origin_up);
+	float alpha = atan(sqrt(1 - cos_value * cos_value) / cos_value);
+	vec4 forward;
+	if (this->up == origin_up) {
+		forward = vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		vec3 axis = cross(this->up, vec3(0.0f, 0.0f, 1.0f)).normalize();
+		forward = mat4::rotate(axis, alpha) * vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	}
+
+	forward = mat4::rotate(this->up, this->theta) * forward;
 	
 	return vec3(forward.x, forward.y, forward.z);
 }

@@ -13,6 +13,7 @@ public:
 	MousePositionHistory();
 	~MousePositionHistory();
 	void change_position(vec2 position);
+	void make_prev_position();
 	vec2 get_current_position();
 	vec2 get_prev_position();
 };

@@ -12,8 +12,12 @@ MousePositionHistory::~MousePositionHistory()
 
 void MousePositionHistory::change_position(vec2 position)
 {
-	this->prev_position = this->current_position;
 	this->current_position = position;
+}
+
+void MousePositionHistory::make_prev_position()
+{
+	this->prev_position = this->current_position;
 }
 
 vec2 MousePositionHistory::get_current_position()
