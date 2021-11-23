@@ -19,6 +19,7 @@ public:
 	vec3 get_up();
 	void set_up(vec3 up);
 	float get_theta();
+	vec3 get_forward();
 	void set_theta(float theta);
 	vec3 get_scale();
 	void set_scale(vec3 scale);

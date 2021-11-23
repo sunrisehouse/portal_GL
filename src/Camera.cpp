@@ -40,14 +40,29 @@ vec3 Camera::get_eye()
 	return this->eye;
 }
 
+void Camera::set_eye(vec3 eye)
+{
+	this->eye = eye;
+}
+
 vec3 Camera::get_at()
 {
 	return this->at;
 }
 
+void Camera::set_at(vec3 at)
+{
+	this->at = at;
+}
+
 vec3 Camera::get_up()
 {
 	return this->up;
+}
+
+void Camera::set_up(vec3 up)
+{
+	this->up = up;
 }
 
 float Camera::get_fovy()

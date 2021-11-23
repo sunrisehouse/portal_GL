@@ -22,8 +22,11 @@ public:
 	~Camera();
 	void initialize();
 	vec3 get_eye();
+	void set_eye(vec3 eye);
 	vec3 get_at();
+	void set_at(vec3 at);
 	vec3 get_up();
+	void set_up(vec3 up);
 	float get_fovy();
 	float get_dnear();
 	float get_dfar();

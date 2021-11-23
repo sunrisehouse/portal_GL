@@ -29,6 +29,13 @@ float GameObject::get_theta()
 	return this->theta;
 }
 
+vec3 GameObject::get_forward()
+{
+	vec4 forward = mat4::rotate(this->up, this->theta) * vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	
+	return vec3(forward.x, forward.y, forward.z);
+}
+
 void GameObject::set_theta(float theta)
 {
 	this->theta = theta;

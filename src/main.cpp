@@ -56,6 +56,18 @@ std::vector<Renderer*> renderers;
 
 //*************************************
 
+void dangle_canera_to_game_object(Camera* cam, GameObject* game_object)
+{
+	vec3 location = game_object->get_location();
+	vec3 forward = game_object->get_forward();
+
+	vec3 camera_position_offset = vec3(0.0f, 0.0f, 10.0f);
+
+	cam->set_eye(location + camera_position_offset);
+	cam->set_up(game_object->get_up());
+	cam->set_at(location + camera_position_offset + forward * 100.0f);
+}
+
 vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
 {
 	// normalize window pos to [0,1]^2
