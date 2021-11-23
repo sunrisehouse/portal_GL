@@ -1,6 +1,6 @@
 #include "GameObject.h"
 
-GameObject::GameObject(vec3 location, vec3 up, float theta, vec3 scale): location(location), up(up), theta(theta), scale(scale)
+GameObject::GameObject(vec3 location, vec3 up, float theta, vec3 scale, float speed): location(location), up(up), theta(theta), scale(scale), speed(speed)
 {
 }
 
@@ -49,4 +49,14 @@ vec3 GameObject::get_scale()
 void GameObject::set_scale(vec3 scale)
 {
 	this->scale = scale;
+}
+
+float GameObject::get_speed()
+{
+	return this->speed;
+}
+
+void GameObject::set_speed(float speed)
+{
+	this->speed = speed;
 }

@@ -11,9 +11,10 @@ protected:
 	vec3 up;
 	float theta;
 	vec3 scale;
+	float speed;
 
 public:
-	GameObject(vec3 location, vec3 up, float theta, vec3 scale);
+	GameObject(vec3 location, vec3 up, float theta, vec3 scale, float speed);
 	vec3 get_location();
 	void set_location(vec3 location);
 	vec3 get_up();
@@ -23,6 +24,8 @@ public:
 	void set_theta(float theta);
 	vec3 get_scale();
 	void set_scale(vec3 scale);
+	float get_speed();
+	void set_speed(float speed);
 };
 
 #endif

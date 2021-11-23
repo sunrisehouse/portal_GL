@@ -38,7 +38,15 @@ GLuint	program	= 0;	// ID holder for GPU program
 // global variables
 int		frame = 0;				// index of rendering frames
 float prev_time;
-
+struct {
+	bool left = false,
+		right = false,
+		up = false,
+		down = false;
+	operator bool() const {
+		return left || right || up || down;
+	}
+}mov_key;
 //*************************************
 // scene objects
 Camera*		camera = nullptr;
@@ -62,7 +70,7 @@ void change_game_object_direction(GameObject* game_object, MousePositionHistory*
 {
 	vec2 mouse_path = mouse_position_history->get_current_position();
 
-	game_object->set_up(sphere->get_up() + vec3(0.0f, 0.0f, mouse_path.y * 0.0004f));
+	// game_object->set_up(sphere->get_up() + vec3(0.0f, 0.0f, mouse_path.y * 0.0004f));
 	game_object->set_theta(sphere->get_theta() + mouse_path.x * 0.0004f);
 }
 
@@ -90,6 +98,27 @@ vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
 	return vec2(npos.x * 2.0f - 1.0f, 1.0f - npos.y * 2.0f);
 }
 
+void sphere_movement()
+{
+	float speed = sphere->get_speed();
+	if (mov_key.up) {
+		vec3 loc = sphere->get_location();
+		sphere->set_location(loc + vec3(0, 1, 0)*speed);
+	}
+	if (mov_key.down) {
+		vec3 loc = sphere->get_location();
+		sphere->set_location(loc + vec3(0, -1, 0) * speed);
+	}
+	if (mov_key.left) {
+		vec3 loc = sphere->get_location();
+		sphere->set_location(loc + vec3(-1, 0, 0) * speed);
+	}
+	if (mov_key.right) {
+		vec3 loc = sphere->get_location();
+		sphere->set_location(loc + vec3(1, 0, 0) * speed);
+	}
+}
+
 void update()
 {
 	float current_time = float(glfwGetTime()) * 0.4f;
@@ -97,7 +126,10 @@ void update()
 	float moving_time = current_time - prev_time;
 	prev_time = current_time;
 
-	change_game_object_direction(sphere, mouse_position_history);
+	if (mov_key) sphere_movement();
+	// change_game_object_direction(sphere, mouse_position_history);
+	dangle_canera_to_game_object(camera, sphere);
+	view_projection_matrix->change_view_matrix(*camera);
 }
 
 void render()
@@ -154,24 +186,19 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else if (key == GLFW_KEY_HOME)					camera->initialize();
 		else if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = true;
 		else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = true;
-		else if (key == GLFW_KEY_W)
-		{
-			is_polygon_mode = !is_polygon_mode;
-			glPolygonMode(GL_FRONT_AND_BACK, is_polygon_mode ? GL_LINE : GL_FILL);
-			if (is_polygon_mode)
-			{
-				printf("> using wireframe mode");
-			}
-			else
-			{
-				printf("> using solid mode");
-			}
-		}
+		else if (key == GLFW_KEY_W)	mov_key.up = true;
+		else if (key == GLFW_KEY_A)	mov_key.left = true;
+		else if (key == GLFW_KEY_S)	mov_key.down = true;
+		else if (key == GLFW_KEY_D)	mov_key.right = true;
 	}
 	else if (action == GLFW_RELEASE)
 	{
 		if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = false;
 		else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = false;
+		else if (key == GLFW_KEY_W)	mov_key.up = false;
+		else if (key == GLFW_KEY_A)	mov_key.left = false;
+		else if (key == GLFW_KEY_S)	mov_key.down = false;
+		else if (key == GLFW_KEY_D)	mov_key.right = false;
 	}
 }
 
@@ -242,8 +269,8 @@ void user_finalize()
 
 void create_solar_system()
 {
-	sphere = new GameObject({ 30.0f, 30.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f });
-	GameObject* plain = new GameObject({ -50.0f, -50.0f, -50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f });
+	sphere = new GameObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f);
+	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 10.0f }, 0.0f);
 
 	Material* material = new Material(
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),
@@ -255,7 +282,7 @@ void create_solar_system()
 	BindedVertexInfo* orb_vertex_info = SphereVerticesBinder::bind();
 	BindedVertexInfo* block_bertex_info = BlockVerticesBinder::bind();
 
-	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/earth.jpg");
+	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/box.png");
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(orb_vertex_info, earth_texture_info, sphere, material);
 	BlockRenderer* blockRenderer = new BlockRenderer(block_bertex_info, earth_texture_info, plain, material);
@@ -272,7 +299,7 @@ int main( int argc, char* argv[] )
 	drag_history = new DragHistory();
 	mouse_position_history = new MousePositionHistory();
 	light = new Light(
-		vec4(0.0f, 0.0f, 0.0f, 1.0f),
+		vec4(0.0f, 0.0f, -1.0f, 0.0f),
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f)
