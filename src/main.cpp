@@ -122,18 +122,21 @@ void sphere_movement(float moving_time)
 	vec3 forward = sphere->get_forward();
 	vec3 velocity = vec3(0.0f, 0.0f, 0.0f);
 	if (mov_key.up) {
-		velocity = vec3(forward.x, forward.y, 0.0f).normalize() * (is_left_shift_pressed?2.0f:1.0f);
+		velocity = vec3(forward.x, forward.y, 0.0f).normalize() * (is_left_shift_pressed?1.5f:1.0f);
+		sphere->set_location(loc + velocity * moving_time * 1000.0f);
 	}
 	if (mov_key.down) {
-		velocity = -vec3(forward.x, forward.y, 0.0f).normalize()/2;
+		velocity = -vec3(forward.x, forward.y, 0.0f).normalize()/2 * (is_left_shift_pressed ? 1.5f : 1.0f);
+		sphere->set_location(loc + velocity * moving_time * 1000.0f);
 	}
 	if (mov_key.left) {
-		velocity = vec3(-forward.y, forward.x, 0.0f).normalize()/2;
+		velocity = vec3(-forward.y, forward.x, 0.0f).normalize()/2 * (is_left_shift_pressed ? 1.5f : 1.0f);
+		sphere->set_location(loc + velocity * moving_time * 1000.0f);
 	}
 	if (mov_key.right) {
-		velocity = vec3(forward.y, -forward.x, 0.0f).normalize()/2;
+		velocity = vec3(forward.y, -forward.x, 0.0f).normalize()/2 * (is_left_shift_pressed ? 1.5f : 1.0f);
+		sphere->set_location(loc + velocity * moving_time * 1000.0f);
 	}
-	sphere->set_location(loc + velocity * moving_time * 1000.0f);
 }
 
 void gravity_handler(float moving_time) {
@@ -183,7 +186,7 @@ void update()
 	float moving_time = current_time - prev_time;
 	prev_time = current_time;
 	prev_loc = sphere->get_location();
-	sphere_movement(moving_time);
+	if(mov_key) sphere_movement(moving_time);
 	gravity_handler(moving_time);
 	for (auto& b : blocks) {
 		collision_handler();
