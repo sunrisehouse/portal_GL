@@ -194,11 +194,6 @@ void print_help()
 	printf( "- press Home to reset camera\n" );
 	printf("- press 'w' to toggle wireframe\n");
 	printf( "\n" );
-
-	vec4 r1 = mat4::rotate(vec3(-1.0f, 0.0f, 0.0f), 0.3f) * vec4(0.0f, 0.0f, 1.0f, 0.0f);
-	vec4 r2 = mat4::rotate(vec3(0.0f, 1.0f, 0.0f), 0.3f) * vec4(0.0f, 0.0f, 1.0f, 0.0f);
-
-	printf("%f, %f, %f // %f %f %f\n", r1.x, r1.y, r1.z, r2.x, r2.y, r2.z);
 }
 
 void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
