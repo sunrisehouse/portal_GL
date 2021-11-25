@@ -14,6 +14,7 @@
 #include "Renderer.h"
 #include "GameObject.h"
 #include "GameAimingObject.h"
+#include "GameMovingObject.h"
 #include "SphereRenderer.h"
 #include "BlockRenderer.h"
 #include "BlockVerticesBinder.h"
@@ -53,12 +54,23 @@ struct {
 Camera*		camera = nullptr;
 Light* light = nullptr;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
-GameAimingObject* sphere;
 MousePositionHistory* mouse_position_history = nullptr;
 bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
 bool is_polygon_mode = false;
+
+//*************************************
+
+BindedVertexInfo* orb_vertex_info;
+BindedVertexInfo* block_vertex_info;
+BindedTextureInfo* box_texture_info;
+Material* default_material;
+
+//*************************************
+
+GameAimingObject* sphere;
+std::vector<GameMovingObject*> moving_objects;
 
 //*************************************
 
@@ -149,6 +161,11 @@ void update()
 
 	dangle_canera_to_game_object(camera, sphere);
 	view_projection_matrix->change_view_matrix(*camera);
+
+	for (auto& moving_object : moving_objects)
+	{
+		moving_object->move(moving_time);
+	}
 }
 
 void render()
@@ -227,7 +244,11 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 	{
 		if (action == GLFW_PRESS)
 		{
-			is_left_mouse_pressed = true;
+			vec3 location = camera->get_eye();
+			vec3 moving_direction = camera->get_at();
+			GameMovingObject* bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f, moving_direction);
+			moving_objects.push_back(bullet);
+			renderers.push_back(new SphereRenderer(orb_vertex_info, box_texture_info, bullet, default_material));
 		}
 		else if (action == GLFW_RELEASE)
 		{
@@ -255,34 +276,37 @@ void user_init()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void user_finalize()
 {
 }
 
-void create_solar_system()
+void create_graphic_object()
+{
+	orb_vertex_info = SphereVerticesBinder::bind();
+	block_vertex_info = BlockVerticesBinder::bind();
+
+	box_texture_info = TextureBinder::bind("textures/box.png");
+}
+
+void create_game_object()
 {
 	sphere = new GameAimingObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f, 0.0f);
-	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f);
+	GameObject* plain1 = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f);
+	GameObject* plain2 = new GameObject({ 500.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 1000.0f, 1000.0f }, 0.0f);
 
-	Material* material = new Material(
+	default_material = new Material(
 		vec4(0.2f, 0.2f, 0.2f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		1000.0f
 	);
 
-	BindedVertexInfo* orb_vertex_info = SphereVerticesBinder::bind();
-	BindedVertexInfo* block_bertex_info = BlockVerticesBinder::bind();
-
-	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/box.png");
-
-	SphereRenderer* sphereRenderer = new SphereRenderer(orb_vertex_info, earth_texture_info, sphere, material);
-	BlockRenderer* blockRenderer = new BlockRenderer(block_bertex_info, earth_texture_info, plain, material);
-
-	renderers.push_back(sphereRenderer);
-	renderers.push_back(blockRenderer);
+	renderers.push_back(new SphereRenderer(orb_vertex_info, box_texture_info, sphere, default_material));
+	renderers.push_back(new BlockRenderer(block_vertex_info, box_texture_info, plain1, default_material));
+	renderers.push_back(new BlockRenderer(block_vertex_info, box_texture_info, plain2, default_material));
 }
 
 int main( int argc, char* argv[] )
@@ -292,10 +316,10 @@ int main( int argc, char* argv[] )
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
 	light = new Light(
-		vec4(0.0f, 0.0f, -1.0f, 0.0f),
-		vec4(0.2f, 0.2f, 0.2f, 1.0f),
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
-		vec4(1.0f, 1.0f, 1.0f, 1.0f)
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
 	// create window and initialize OpenGL extensions
@@ -306,7 +330,8 @@ int main( int argc, char* argv[] )
 	if(!(program=cg_create_program( vert_shader_path, frag_shader_path ))){ glfwTerminate(); return 1; }	// create and compile shaders/program
 	user_init();					// user initialization
 
-	create_solar_system();
+	create_graphic_object();
+	create_game_object();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events

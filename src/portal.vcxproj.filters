@@ -92,11 +92,14 @@
     <ClCompile Include="TextureBinder.cpp">
       <Filter>Source Files\texture_binder</Filter>
     </ClCompile>
-    <ClCompile Include="MousePositionHistory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameAimingObject.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\game_model</Filter>
+    </ClCompile>
+    <ClCompile Include="MousePositionHistory.cpp">
+      <Filter>Source Files\graphic_model</Filter>
+    </ClCompile>
+    <ClCompile Include="GameMovingObject.cpp">
+      <Filter>Source Files\game_model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -148,11 +151,14 @@
     <ClInclude Include="TextureBinder.h">
       <Filter>Header Files\texture_binder</Filter>
     </ClInclude>
-    <ClInclude Include="MousePositionHistory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GameAimingObject.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\game_model</Filter>
+    </ClInclude>
+    <ClInclude Include="MousePositionHistory.h">
+      <Filter>Header Files\graphic_model</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMovingObject.h">
+      <Filter>Header Files\game_model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

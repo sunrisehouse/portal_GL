@@ -15,45 +15,45 @@ BindedVertexInfo* BlockVerticesBinder::bind()
 	};
 
 	std::vector<vertex> vertices;
-	vertices.push_back({ cube_vertices[0], cube_vertices[0].normalize(), vec2(1.0f, 1.0f)});
-	vertices.push_back({ cube_vertices[3], cube_vertices[3].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[7], cube_vertices[7].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[4], cube_vertices[4].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[0], vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[1], vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[2], vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[3], vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f) });
 
-	vertices.push_back({ cube_vertices[1], cube_vertices[1].normalize(), vec2(1.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[0], cube_vertices[0].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[4], cube_vertices[4].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[5], cube_vertices[5].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[4], vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[0], vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[3], vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[7], vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f) });
 
-	vertices.push_back({ cube_vertices[2], cube_vertices[2].normalize(), vec2(1.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[1], cube_vertices[1].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[5], cube_vertices[5].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[6], cube_vertices[6].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[0], vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[4], vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[5], vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[1], vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f) });
 
-	vertices.push_back({ cube_vertices[3], cube_vertices[3].normalize(), vec2(1.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[2], cube_vertices[2].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[6], cube_vertices[6].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[7], cube_vertices[7].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[1], vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[5], vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[6], vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[2], vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 0.0f) });
 
-	vertices.push_back({ cube_vertices[1], cube_vertices[1].normalize(), vec2(1.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[2], cube_vertices[2].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[3], cube_vertices[3].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[0], cube_vertices[0].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[2], vec3(-1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[6], vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[7], vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[3], vec3(-1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f) });
 
-	vertices.push_back({ cube_vertices[4], cube_vertices[4].normalize(), vec2(1.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[7], cube_vertices[7].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[6], cube_vertices[6].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[5], cube_vertices[5].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[4], vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[7], vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[6], vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[5], vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 0.0f) });
 
 	std::vector<uint> indices;
 	for (int k = 0; k < 6; k++) {
 		indices.push_back(k * 4 + 0);
-		indices.push_back(k * 4 + 1);
 		indices.push_back(k * 4 + 2);
+		indices.push_back(k * 4 + 1);
 
 		indices.push_back(k * 4 + 0);
-		indices.push_back(k * 4 + 2);
 		indices.push_back(k * 4 + 3);
+		indices.push_back(k * 4 + 2);
 	}
 
 	index_buffer_size = indices.size();
