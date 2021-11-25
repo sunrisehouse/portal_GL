@@ -1,7 +1,8 @@
 #include "GameObject.h"
 
-GameObject::GameObject(vec3 location, vec3 up, float theta, vec3 scale, float speed): location(location), up(up.normalize()), theta(theta), scale(scale), speed(speed)
+GameObject::GameObject(vec3 location, vec3 up, float theta, vec3 scale, float speed, int type): location(location), up(up.normalize()), theta(theta), scale(scale), speed(speed), type(type)
 {
+
 }
 
 vec3 GameObject::get_location()
@@ -66,4 +67,9 @@ float GameObject::get_speed()
 void GameObject::set_speed(float speed)
 {
 	this->speed = speed;
+}
+
+void GameObject::set_z(float z)
+{
+	this->location.z = z;
 }

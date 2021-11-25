@@ -32,7 +32,7 @@ void Camera::initialize()
 
 	this->fovy = PI / 4.0f;
 	this->dnear = 1.0f;
-	this->dfar = 1000.0f;
+	this->dfar = 100000.0f;
 }
 
 vec3 Camera::get_eye()

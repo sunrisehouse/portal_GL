@@ -1,6 +1,6 @@
 #include "GameAimingObject.h"
 
-GameAimingObject::GameAimingObject(vec3 location, vec3 up, float theta, vec3 scale, float speed, float alpha): GameObject(location, up, theta, scale, speed), alpha(alpha)
+GameAimingObject::GameAimingObject(vec3 location, vec3 up, float theta, vec3 scale, float speed, float alpha): GameObject(location, up, theta, scale, speed, type), alpha(alpha)
 {
 }
 

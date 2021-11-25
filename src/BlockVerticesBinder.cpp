@@ -40,10 +40,10 @@ BindedVertexInfo* BlockVerticesBinder::bind()
 	vertices.push_back({ cube_vertices[3], cube_vertices[3].normalize(), vec2(0.0f, 0.0f) });
 	vertices.push_back({ cube_vertices[0], cube_vertices[0].normalize(), vec2(1.0f, 0.0f) });
 
-	vertices.push_back({ cube_vertices[4], cube_vertices[4].normalize(), vec2(1.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[7], cube_vertices[7].normalize(), vec2(0.0f, 1.0f) });
-	vertices.push_back({ cube_vertices[6], cube_vertices[6].normalize(), vec2(0.0f, 0.0f) });
-	vertices.push_back({ cube_vertices[5], cube_vertices[5].normalize(), vec2(1.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[4], -cube_vertices[4].normalize(), vec2(1.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[7], -cube_vertices[7].normalize(), vec2(0.0f, 1.0f) });
+	vertices.push_back({ cube_vertices[6], -cube_vertices[6].normalize(), vec2(0.0f, 0.0f) });
+	vertices.push_back({ cube_vertices[5], -cube_vertices[5].normalize(), vec2(1.0f, 0.0f) });
 
 	std::vector<uint> indices;
 	for (int k = 0; k < 6; k++) {

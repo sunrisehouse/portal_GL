@@ -19,6 +19,7 @@ uniform vec4	light_position, Ia, Id, Is;	// light
 uniform vec4	Ka, Kd, Ks;					// material properties
 
 // texture sampler
+uniform samplerCube cubemap;
 uniform sampler2D TEX;
 uniform sampler2D TEX_ALPHA;
 uniform sampler2D TEX_BUMP;
@@ -46,11 +47,15 @@ void main()
 
 	vec4 iKd = texture( TEX, tc );	// Kd from image
 	if(mode==0)			fragColor = iKd;
-	else if(mode==1)	fragColor = phong( l, n, h, iKd );
+	else if(mode==1)	
+	{
+	iKd = texture(TEX, tc);
+	fragColor = phong( l, n, h, iKd );
+	}
 	else if(mode==2)
 	{
 		vec4 alpha = texture( TEX_ALPHA, tc );
-		fragColor = vec4(phong( l, n, h, iKd ).xyz, alpha.x);
+		fragColor = vec4(phong( l, n, h, iKd ).xyz, alpha);
 	}
 	else
 	{

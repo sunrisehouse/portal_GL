@@ -22,7 +22,7 @@
 
 //*************************************
 // global constants
-static const char*	window_name = "cgbase - trackball";
+static const char*	window_name = "game";
 static const char*	vert_shader_path = "shaders/trackball.vert";
 static const char*	frag_shader_path = "shaders/trackball.frag";
 
@@ -48,6 +48,12 @@ struct {
 		return left || right || up || down;
 	}
 }mov_key;
+float gravity = -500;
+bool onGround = false;
+float jump_power = 200;
+float upward_speed = 0;
+vec3 prev_loc;
+std::vector<GameObject*> blocks;
 //*************************************
 // scene objects
 Camera*		camera = nullptr;
@@ -116,37 +122,82 @@ void sphere_movement(float moving_time)
 	vec3 forward = sphere->get_forward();
 	vec3 velocity = vec3(0.0f, 0.0f, 0.0f);
 	if (mov_key.up) {
-		velocity = vec3(forward.x, forward.y, 0.0f).normalize();
+		velocity = vec3(forward.x, forward.y, 0.0f).normalize() * (is_left_shift_pressed?2.0f:1.0f);
 	}
 	if (mov_key.down) {
-		velocity = -vec3(forward.x, forward.y, 0.0f).normalize();
+		velocity = -vec3(forward.x, forward.y, 0.0f).normalize()/2;
 	}
 	if (mov_key.left) {
-		velocity = vec3(-forward.y, forward.x, 0.0f).normalize();
+		velocity = vec3(-forward.y, forward.x, 0.0f).normalize()/2;
 	}
 	if (mov_key.right) {
-		velocity = vec3(forward.y, -forward.x, 0.0f).normalize();
+		velocity = vec3(forward.y, -forward.x, 0.0f).normalize()/2;
 	}
 	sphere->set_location(loc + velocity * moving_time * 1000.0f);
 }
 
+void gravity_handler(float moving_time) {
+	upward_speed += gravity * moving_time;
+	if (upward_speed < -30) {
+		onGround = false;
+	}
+	vec3 loc = sphere->get_location();
+	sphere->set_location(loc + vec3(0, 0, upward_speed*moving_time));
+}
+
+void collision_handler() {
+	vec3 loc = sphere->get_location();
+	vec3 moving_vector = loc - prev_loc;
+	moving_vector.z = 0;
+	for (auto& b : blocks)
+	{
+		vec3 b_loc = b->get_location();
+		vec3 b_scale = b->get_scale();
+		if (abs(loc.x - b_loc.x) < b_scale.x/2) {
+			if (abs(loc.y - b_loc.y) < b_scale.y/2) {
+				if (abs(loc.z - b_loc.z) < b_scale.z) {
+					if (prev_loc.z - b_loc.z > b_scale.z) {
+						onGround = true;
+						upward_speed = 0;
+						sphere->set_z(b_loc.z + b_scale.z + 0.1f);
+					}
+					else {
+						sphere->set_location(loc - moving_vector*1.001f);
+					}
+				}
+			}
+		}
+	}
+}
+
+void jump() {
+	if (onGround) {
+		upward_speed = jump_power;
+		onGround = false;
+	}
+}
 void update()
 {
 	float current_time = float(glfwGetTime()) * 0.4f;
 
 	float moving_time = current_time - prev_time;
 	prev_time = current_time;
-
+	prev_loc = sphere->get_location();
 	sphere_movement(moving_time);
-
+	gravity_handler(moving_time);
+	for (auto& b : blocks) {
+		collision_handler();
+	}
+	
 	vec2 current_position = mouse_position_history->get_current_position();
 	vec2 prev_position = mouse_position_history->get_prev_position();
-
 	if (current_position != prev_position) {
 		change_game_object_direction(sphere, current_position - prev_position);
 		mouse_position_history->make_prev_position();
 	}
-
+	if (sphere->get_location().z < -200.0f) {
+		sphere->set_location(vec3(0, 0, 10));
+	}
 	dangle_canera_to_game_object(camera, sphere);
 	view_projection_matrix->change_view_matrix(*camera);
 }
@@ -214,6 +265,7 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else if (key == GLFW_KEY_A)	mov_key.left = true;
 		else if (key == GLFW_KEY_S)	mov_key.down = true;
 		else if (key == GLFW_KEY_D)	mov_key.right = true;
+		else if (key == GLFW_KEY_SPACE) jump();
 	}
 	else if (action == GLFW_RELEASE)
 	{
@@ -257,6 +309,7 @@ void user_init()
 	glEnable( GL_CULL_FACE );								// turn on backface culling
 	glEnable( GL_DEPTH_TEST );								// turn on depth tests
 	glEnable(GL_BLEND);
+	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -266,13 +319,15 @@ void user_finalize()
 {
 }
 
-void create_solar_system()
+void create_map()
 {
-	sphere = new GameAimingObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 1.0f, 0.0f);
-	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f);
-
+	sphere = new GameAimingObject({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f }, 1.0f, 0.0f);
+	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f, 0);
+	GameObject* box1 = new GameObject({ 200.0f, 100.0f, 10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 20.0f }, 0.0f, 0);
+	blocks.push_back(plain);
+	blocks.push_back(box1);
 	Material* material = new Material(
-		vec4(0.2f, 0.2f, 0.2f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		1000.0f
@@ -284,10 +339,11 @@ void create_solar_system()
 	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/box.png");
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(orb_vertex_info, earth_texture_info, sphere, material);
-	BlockRenderer* blockRenderer = new BlockRenderer(block_bertex_info, earth_texture_info, plain, material);
-
+	for (auto& b : blocks) {
+		BlockRenderer* blockRenderer = new BlockRenderer(block_bertex_info, earth_texture_info, b, material);
+		renderers.push_back(blockRenderer);
+	}
 	renderers.push_back(sphereRenderer);
-	renderers.push_back(blockRenderer);
 }
 
 int main( int argc, char* argv[] )
@@ -298,20 +354,20 @@ int main( int argc, char* argv[] )
 	mouse_position_history = new MousePositionHistory();
 	light = new Light(
 		vec4(0.0f, 0.0f, -1.0f, 0.0f),
-		vec4(0.2f, 0.2f, 0.2f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f)
 	);
 
 	// create window and initialize OpenGL extensions
-	if(!(window = cg_create_window( window_name, window_size.x, window_size.y ))){ glfwTerminate(); return 1; }
+	if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
 	if(!cg_init_extensions( window )){ glfwTerminate(); return 1; }	// version and extensions
 
 	// initializations and validations
 	if(!(program=cg_create_program( vert_shader_path, frag_shader_path ))){ glfwTerminate(); return 1; }	// create and compile shaders/program
 	user_init();					// user initialization
 
-	create_solar_system();
+	create_map();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
