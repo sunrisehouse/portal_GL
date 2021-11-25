@@ -14,6 +14,7 @@
 #include "Renderer.h"
 #include "GameObject.h"
 #include "GameAimingObject.h"
+#include "GameMovingObject.h"
 #include "SphereRenderer.h"
 #include "BlockRenderer.h"
 #include "BlockVerticesBinder.h"
@@ -59,12 +60,23 @@ std::vector<GameObject*> blocks;
 Camera*		camera = nullptr;
 Light* light = nullptr;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
-GameAimingObject* sphere;
 MousePositionHistory* mouse_position_history = nullptr;
 bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
 bool is_polygon_mode = false;
+
+//*************************************
+
+BindedVertexInfo* sphere_vertex_info;
+BindedVertexInfo* block_vertex_info;
+BindedTextureInfo* box_texture_info;
+Material* default_material;
+
+//*************************************
+
+GameAimingObject* sphere;
+std::vector<GameMovingObject*> moving_objects;
 
 //*************************************
 
@@ -117,7 +129,7 @@ vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
 
 void sphere_movement(float moving_time)
 {
-	float speed = sphere->get_speed();
+	float speed = sphere->get_moving_speed();
 	vec3 loc = sphere->get_location();
 	vec3 forward = sphere->get_forward();
 	vec3 velocity = vec3(0.0f, 0.0f, 0.0f);
@@ -203,6 +215,11 @@ void update()
 	}
 	dangle_canera_to_game_object(camera, sphere);
 	view_projection_matrix->change_view_matrix(*camera);
+
+	for (auto& moving_object : moving_objects)
+	{
+		moving_object->move(moving_time);
+	}
 }
 
 void render()
@@ -248,11 +265,6 @@ void print_help()
 	printf( "- press Home to reset camera\n" );
 	printf("- press 'w' to toggle wireframe\n");
 	printf( "\n" );
-
-	vec4 r1 = mat4::rotate(vec3(-1.0f, 0.0f, 0.0f), 0.3f) * vec4(0.0f, 0.0f, 1.0f, 0.0f);
-	vec4 r2 = mat4::rotate(vec3(0.0f, 1.0f, 0.0f), 0.3f) * vec4(0.0f, 0.0f, 1.0f, 0.0f);
-
-	printf("%f, %f, %f // %f %f %f\n", r1.x, r1.y, r1.z, r2.x, r2.y, r2.z);
 }
 
 void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
@@ -287,7 +299,11 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 	{
 		if (action == GLFW_PRESS)
 		{
-			is_left_mouse_pressed = true;
+			vec3 location = camera->get_eye();
+			vec3 moving_direction = camera->get_at();
+			GameMovingObject* bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, 1.0f, moving_direction);
+			moving_objects.push_back(bullet);
+			renderers.push_back(new SphereRenderer(sphere_vertex_info, box_texture_info, bullet, default_material));
 		}
 		else if (action == GLFW_RELEASE)
 		{
@@ -316,37 +332,48 @@ void user_init()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void user_finalize()
 {
 }
 
-void create_map()
+void create_graphic_object()
 {
-	sphere = new GameAimingObject({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f }, 1.0f, 0.0f);
-	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0.0f, 0);
-	GameObject* box1 = new GameObject({ 200.0f, 100.0f, 10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 20.0f }, 0.0f, 0);
-	blocks.push_back(plain);
-	blocks.push_back(box1);
-	Material* material = new Material(
+	sphere_vertex_info = SphereVerticesBinder::bind();
+	block_vertex_info = BlockVerticesBinder::bind();
+
+	box_texture_info = TextureBinder::bind("textures/box.png");
+	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		1000.0f
 	);
+}
 
-	BindedVertexInfo* orb_vertex_info = SphereVerticesBinder::bind();
-	BindedVertexInfo* block_bertex_info = BlockVerticesBinder::bind();
+void create_map()
+{
+	GameObject* plain = new GameObject({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 10.0f }, 0);
+	GameObject* box1 = new GameObject({ 200.0f, 100.0f, 10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 20.0f }, 0);
+	GameObject* box2 = new GameObject({ -200.0f, -100.0f, 10.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 200.0f }, 0);
+	blocks.push_back(plain);
+	blocks.push_back(box1);
+	blocks.push_back(box2);
+}
 
-	BindedTextureInfo* earth_texture_info = TextureBinder::bind("textures/box.png");
+void create_game_object()
+{
+	sphere = new GameAimingObject({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, 1.0f, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
-	SphereRenderer* sphereRenderer = new SphereRenderer(orb_vertex_info, earth_texture_info, sphere, material);
+	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
+	renderers.push_back(sphereRenderer);
+
 	for (auto& b : blocks) {
-		BlockRenderer* blockRenderer = new BlockRenderer(block_bertex_info, earth_texture_info, b, material);
+		BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
 		renderers.push_back(blockRenderer);
 	}
-	renderers.push_back(sphereRenderer);
 }
 
 int main( int argc, char* argv[] )
@@ -356,10 +383,10 @@ int main( int argc, char* argv[] )
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
 	light = new Light(
-		vec4(0.0f, 0.0f, -1.0f, 0.0f),
-		vec4(0.5f, 0.5f, 0.5f, 1.0f),
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
-		vec4(1.0f, 1.0f, 1.0f, 1.0f)
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
 	// create window and initialize OpenGL extensions
@@ -370,7 +397,9 @@ int main( int argc, char* argv[] )
 	if(!(program=cg_create_program( vert_shader_path, frag_shader_path ))){ glfwTerminate(); return 1; }	// create and compile shaders/program
 	user_init();					// user initialization
 
+	create_graphic_object();
 	create_map();
+	create_game_object();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
