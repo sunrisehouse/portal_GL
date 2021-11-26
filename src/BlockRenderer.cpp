@@ -31,7 +31,7 @@ void BlockRenderer::render(GLuint program)
 	glActiveTexture(GL_TEXTURE0);								// select the texture slot to bind
 	glBindTexture(GL_TEXTURE_2D, this->texture_info->get_texture());
 	glUniform1i(glGetUniformLocation(program, "TEX"), 0);	 // GL_TEXTURE0
-	glUniform1i(glGetUniformLocation(program, "mode"), 0);
+	glUniform1i(glGetUniformLocation(program, "mode"), this->object->get_type());
 
 	// bind vertex array object
 	if (this->vertex_info->get_vertex_array()) glBindVertexArray(this->vertex_info->get_vertex_array());

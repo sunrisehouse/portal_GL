@@ -25,6 +25,7 @@ public:
 	vec3 get_scale();
 	void set_scale(vec3 scale);
 	void set_z(float z);
+	int get_type();
 };
 
 #endif

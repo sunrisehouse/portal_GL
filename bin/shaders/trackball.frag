@@ -46,29 +46,6 @@ void main()
 	vec3 h = normalize(l+v);	// the halfway vector
 
 	vec4 iKd = texture( TEX, tc );	// Kd from image
-	if(mode==0)			fragColor = iKd;
-	else if(mode==1)	
-	{
-	iKd = texture(TEX, tc);
-	fragColor = phong( l, n, h, iKd );
-	}
-	else if(mode==2)
-	{
-		vec4 alpha = texture( TEX_ALPHA, tc );
-		fragColor = vec4(phong( l, n, h, iKd ).xyz, alpha);
-	}
-	else
-	{
-		vec3 c1 = cross(n,vec3(0,0,1));
-		vec3 c2 = cross(n,vec3(0,1,0));
-		vec3 tangent = normalize(length(c1)>length(c2)?c1:c2);
-		vec3 binormal = cross(n,tangent);
-
-		vec3 tnormal = texture(TEX_NORM, tc ).xyz;
-		tnormal = normalize(tnormal-0.5);
-		mat3 tbn = mat3( tangent, binormal, n );
-		vec3 world_space_bumped_normal = tbn * tnormal;
-
-		fragColor = phong( l, world_space_bumped_normal, h, iKd );
-	}
+	if(mode==0)			fragColor = phong( l, n, h, iKd );
+	else if(mode==1 || mode == 2)			fragColor = iKd;
 }

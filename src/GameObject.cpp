@@ -63,3 +63,8 @@ void GameObject::set_z(float z)
 {
 	this->location.z = z;
 }
+
+int GameObject::get_type()
+{
+	return this->type;
+}
