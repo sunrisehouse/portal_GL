@@ -101,6 +101,15 @@
     <ClCompile Include="GameMovingObject.cpp">
       <Filter>Source Files\game_model</Filter>
     </ClCompile>
+    <ClCompile Include="PortalXVerticesBinder.cpp">
+      <Filter>Source Files\vertices_binder</Filter>
+    </ClCompile>
+    <ClCompile Include="PortalYVerticesBinder.cpp">
+      <Filter>Source Files\vertices_binder</Filter>
+    </ClCompile>
+    <ClCompile Include="PortalZVerticesBinder.cpp">
+      <Filter>Source Files\vertices_binder</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cgmath.h">
@@ -159,6 +168,15 @@
     </ClInclude>
     <ClInclude Include="GameMovingObject.h">
       <Filter>Header Files\game_model</Filter>
+    </ClInclude>
+    <ClInclude Include="PortalXVerticesBinder.h">
+      <Filter>Header Files\vertices_binder</Filter>
+    </ClInclude>
+    <ClInclude Include="PortalYVerticesBinder.h">
+      <Filter>Header Files\vertices_binder</Filter>
+    </ClInclude>
+    <ClInclude Include="PortalZVerticesBinder.h">
+      <Filter>Header Files\vertices_binder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

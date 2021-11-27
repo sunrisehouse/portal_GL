@@ -30,7 +30,7 @@ void Camera::initialize()
 	this->at = vec3(0, 0, 0);
 	this->up = vec3(0, 0, 1);
 
-	this->fovy = PI / 2.0f;
+	this->fovy = PI / 2.5f;
 	this->dnear = 1.0f;
 	this->dfar = 100000.0f;
 }
