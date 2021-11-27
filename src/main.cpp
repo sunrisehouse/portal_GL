@@ -287,7 +287,7 @@ void collision_handler() {
 							sphere->set_location(loc - moving_vector * 1.001f);
 						}
 					}
-					else if (b->get_type() == 1) {
+					else if (b->get_type() == 1 && temp_portal_o) {
 						if (portal_switch) {
 							portal_dynamics(b, temp_portal_o);
 						}
@@ -296,7 +296,7 @@ void collision_handler() {
 						}
 						
 					}
-					else if (b->get_type() == 2) {
+					else if (b->get_type() == 2 && temp_portal_b) {
 						if (portal_switch) {
 							portal_dynamics(b, temp_portal_b);
 						}
