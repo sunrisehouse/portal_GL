@@ -67,6 +67,7 @@ float b_timer = 0.0f;
 bool b_time_catcher = false;
 float o_timer = 0.0f;
 bool o_time_catcher = false;
+int stage = 1;
 vec3 prev_loc;
 vec4 trans_vec;
 //*************************************
@@ -92,6 +93,8 @@ BindedTextureInfo* blue_portal_texture_info;
 BindedTextureInfo* orange_portal_texture_info;
 BindedTextureInfo* blue_bullet_texture_info;
 BindedTextureInfo* orange_bullet_texture_info;
+BindedTextureInfo* clear_portal_texture_info;
+BindedTextureInfo* enemy_texture_info;
 Material* default_material;
 
 //*************************************
@@ -113,11 +116,11 @@ Renderer* blue_portal_renderer = nullptr;
 Renderer* yellow_portal_renderer = nullptr;
 
 //*************************************
-void create_map();
 void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
-void initialize_practice_game2();
-void delete_game();
-
+void initialize_stage1();
+void initialize_stage2();
+void next_level();
+void reset();
 void change_aim_by_mouse(GameAimingObject* game_object, vec2 mouse_path)
 {
 	float x_threshold = 0.0001f;
@@ -188,6 +191,7 @@ void sphere_movement(float moving_time)
 	}
 }
 
+
 void gravity_handler(float moving_time) {
 	upward_speed += gravity * moving_time;
 	if (upward_speed < -30) {
@@ -239,7 +243,6 @@ void portal_dynamics(GameObject* from, GameObject* to) {
 bool find_collistion(GameObject* game_object, GameObject* block)
 {
 	vec3 loc = game_object->get_location();
-
 	vec3 b_loc = block->get_location();
 	vec3 b_scale = block->get_scale();
 
@@ -310,7 +313,6 @@ void collision_handler() {
 						else {
 							sphere->set_location(loc - moving_vector * 1.001f);
 						}
-						
 					}
 					else if (b->get_type() == 2 && temp_portal_b) {
 						if (portal_switch) {
@@ -319,7 +321,9 @@ void collision_handler() {
 						else {
 							sphere->set_location(loc - moving_vector * 1.001f);
 						}
-						
+					}
+					else if (b->get_type() == 4) {
+						next_level();
 					}
 				}
 			}
@@ -338,6 +342,7 @@ void jump() {
 void reset()
 {
 	sphere->set_location(initial_pos);
+	sphere->set_theta(PI);
 	temp_portal_b = nullptr;
 	delete blue_portal_renderer;
 	blue_portal_renderer = nullptr;
@@ -461,7 +466,7 @@ void update()
 				b_timer = 0.0f;
 				break;
 			}
-			else if (block->get_type() == 3 && find_collistion(blue_bullet, block))
+			else if ((block->get_type() == 3 || block->get_type() == 4 || block->get_type() == 5) && find_collistion(blue_bullet, block))
 			{
 				delete blue_bullet;
 				blue_bullet = nullptr;
@@ -504,7 +509,7 @@ void update()
 				o_timer = 0.0f;
 				break;
 			}
-			else if (block->get_type() == 3 && find_collistion(yellow_bullet, block))
+			else if ((block->get_type() == 3 || block->get_type() == 4 || block->get_type() == 5)&& find_collistion(yellow_bullet, block))
 			{
 				delete yellow_bullet;
 				yellow_bullet = nullptr;
@@ -595,8 +600,7 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else if (key == GLFW_KEY_D)	mov_key.right = true;
 		else if (key == GLFW_KEY_SPACE) jump();
 		else if (key == GLFW_KEY_K) {
-			delete_game();
-			initialize_practice_game2();
+			next_level();
 		}
 	}
 	else if (action == GLFW_RELEASE)
@@ -675,6 +679,8 @@ void create_graphic_object()
 	orange_portal_texture_info = TextureBinder::bind("textures/orange_portal.png");
 	blue_bullet_texture_info = TextureBinder::bind("textures/blue_bullet.png");
 	orange_bullet_texture_info = TextureBinder::bind("textures/orange_bullet.png");
+	clear_portal_texture_info = TextureBinder::bind("textures/clear.png");
+	enemy_texture_info = TextureBinder::bind("textures/enemy.png");
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
@@ -683,7 +689,7 @@ void create_graphic_object()
 	);
 }
 
-void initialize_practice_game()
+void initialize_stage1()
 {
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
@@ -705,9 +711,9 @@ void initialize_practice_game()
 	GameObject* box;
 	box = new GameObject({ 200.0f, 100.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 20.0f }, 0);
 	blocks.push_back(box);
-	box = new GameObject({ -200.0f, -100.0f, 40.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 100.0f }, 0);
+	box = new GameObject({ -200.0f, -100.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 80.0f }, 0);
 	blocks.push_back(box);
-	box = new GameObject({ 200.0f, -100.0f, 40.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 100.0f }, 0);
+	box = new GameObject({ 200.0f, -100.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 80.0f }, 0);
 	blocks.push_back(box);
 
 	GameObject* wall;
@@ -726,6 +732,10 @@ void initialize_practice_game()
 	blocks.push_back(black_wall);
 	black_wall = new GameObject({ -505.0f, 0.0f, -165.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 1000.0f, 300.0f }, 3);
 	blocks.push_back(black_wall);
+
+	GameObject* goal;
+	goal = new GameObject({ -970.0f, 0.0f, 30.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
+	blocks.push_back(goal);
 
 	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
@@ -751,11 +761,29 @@ void initialize_practice_game()
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
+		else if (texture_type == 4) {
+			if (b->get_up() == vec3(1, 0, 0) || b->get_up() == vec3(-1, 0, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalx_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 1, 0) || b->get_up() == vec3(0, -1, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portaly_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 0, 1) || b->get_up() == vec3(0, 0, -1)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalz_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
 
+		}
+		else if (texture_type == 5) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
 	}
 }
 
-void initialize_practice_game2()
+void initialize_stage2()
 {
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
@@ -767,13 +795,13 @@ void initialize_practice_game2()
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	GameObject* plain;
-	plain = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
-	blocks.push_back(plain);
-	plain = new GameObject({ -900.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 30.0f }, 0);
-	blocks.push_back(plain);
-	plain = new GameObject({ -650.0f, 0.0f, -300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 300.0f, 1000.0f, 30.0f }, 0);
-	blocks.push_back(plain);
+	GameObject* plane;
+	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	plane = new GameObject({ -900.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	plane = new GameObject({ -650.0f, 0.0f, -300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 300.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plane);
 
 
 	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
@@ -796,11 +824,10 @@ void initialize_practice_game2()
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
-
 	}
 }
 
-void delete_game()
+void next_level()
 {
 	delete camera;
 	camera = nullptr;
@@ -829,18 +856,15 @@ void delete_game()
 	}
 
 	renderers.clear();
-
-	delete blue_bullet;
-	blue_bullet = nullptr;
-
-	delete yellow_bullet;
-	yellow_bullet = nullptr;
-
-	delete blue_portal_renderer;
-	blue_portal_renderer = nullptr;
-
-	delete yellow_portal_renderer;
-	yellow_portal_renderer = nullptr;
+	reset();
+	stage++;
+	if (stage == 1) {
+		initialize_stage1();
+	}
+	else if(stage == 2) {
+		initialize_stage2();
+	}
+	
 
 	/*
 	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
@@ -867,7 +891,7 @@ int main( int argc, char* argv[] )
 
 	create_graphic_object();
 
-	initialize_practice_game();
+	initialize_stage1();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
