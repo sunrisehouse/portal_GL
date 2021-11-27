@@ -253,7 +253,7 @@ vec3 find_collision_n_of_block(GameObject* game_object, GameObject* block)
 			min_index = i;
 		}
 	}
-
+	printf("m: %d\n", min_index);
 	if (min_index == 0) return vec3(-1.0f, 0.0f, 0.0f);
 	if (min_index == 1) return vec3(1.0f, 0.0f, 0.0f);
 	if (min_index == 2) return vec3(0.0f, -1.0f, 0.0f);
@@ -391,6 +391,7 @@ void update()
 				vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
 				vec3 portal_location = yellow_bullet->get_location() + portal_up * vec3(1.5f, 1.5f, 1.5f);
 				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(69.0f, 69.0f, 69.0f);
+
 				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1); // z-axis
 				blocks.push_back(temp_portal_o);
 				yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
@@ -500,7 +501,7 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 
 		vec3 location = camera->get_eye();
 		vec3 moving_direction = camera->get_at() - location;
-		blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.001f);
+		blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.01f);
 		blue_bullet_renderer = new SphereRenderer(sphere_vertex_info, box_texture_info, blue_bullet, default_material);
 	}
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && yellow_bullet == nullptr)
@@ -510,7 +511,7 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 
 		vec3 location = camera->get_eye();
 		vec3 moving_direction = camera->get_at() - location;
-		yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.001f);
+		yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.01f);
 		yellow_bullet_renderer = new SphereRenderer(sphere_vertex_info, box_texture_info, yellow_bullet, default_material);
 	}
 }
@@ -556,9 +557,19 @@ void create_graphic_object()
 	);
 }
 
-void create_map()
+void initialize_practice_game()
 {
-	GameObject* plain; 
+	camera = new Camera();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	mouse_position_history = new MousePositionHistory();
+	light = new Light(
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		vec4(0.8f, 0.8f, 0.8f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+
+	GameObject* plain;
 	plain = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
 	blocks.push_back(plain);
 	plain = new GameObject({ -900.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 30.0f }, 0);
@@ -566,7 +577,7 @@ void create_map()
 	plain = new GameObject({ -650.0f, 0.0f, -300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 300.0f, 1000.0f, 30.0f }, 0);
 	blocks.push_back(plain);
 
-	
+
 	GameObject* box;
 	box = new GameObject({ 200.0f, 100.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 20.0f }, 0);
 	blocks.push_back(box);
@@ -580,18 +591,12 @@ void create_map()
 	blocks.push_back(wall);
 	wall = new GameObject({ 500.0f, 0.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 530.0f }, 0);
 	blocks.push_back(wall);
-	
+
 	wall = new GameObject({ -500.0f, 500.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 2000.0f, 30.0f, 530.0f }, 0);
 	blocks.push_back(wall);
 	wall = new GameObject({ -500.0f, -500.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 2000.0f, 30.0f, 530.0f }, 0);
 	blocks.push_back(wall);
-	
-}
 
-
-
-void create_game_object()
-{
 	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
@@ -603,22 +608,13 @@ void create_game_object()
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
-		
+
 	}
 }
 
 int main( int argc, char* argv[] )
 {
 	window_size = cg_default_window_size(); // initial window size
-	camera = new Camera();
-	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
-	mouse_position_history = new MousePositionHistory();
-	light = new Light(
-		vec4(0.0f, 0.0f, 100.0f, 1.0f),
-		vec4(1.0f, 1.0f, 1.0f, 1.0f),
-		vec4(0.8f, 0.8f, 0.8f, 1.0f),
-		vec4(0.5f, 0.5f, 0.5f, 1.0f)
-	);
 	
 	// create window and initialize OpenGL extensions
 	// if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
@@ -629,8 +625,9 @@ int main( int argc, char* argv[] )
 	user_init();					// user initialization
 
 	create_graphic_object();
-	create_map();
-	create_game_object();
+
+	initialize_practice_game();
+
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
     glfwSetKeyCallback( window, keyboard );			// callback for keyboard events
