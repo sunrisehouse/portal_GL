@@ -80,17 +80,21 @@ Material* default_material;
 
 //*************************************
 
-GameAimingObject* sphere;
-GameObject* temp_portal_b;
-GameObject* temp_portal_o;
+GameAimingObject* sphere = nullptr;
+GameObject* temp_portal_b = nullptr;
+GameObject* temp_portal_o = nullptr;
 std::vector<GameObject*> blocks;
 std::vector<GameMovingObject*> moving_objects;
-GameMovingObject* blue_bullet;
-GameMovingObject* yellow_bullet;
+GameMovingObject* blue_bullet = nullptr;
+GameMovingObject* yellow_bullet = nullptr;
 
 //*************************************
 
 std::vector<Renderer*> renderers;
+Renderer* blue_bullet_renderer = nullptr;
+Renderer* yellow_bullet_renderer = nullptr;
+Renderer* blue_portal_renderer = nullptr;
+Renderer* yellow_portal_renderer = nullptr;
 
 //*************************************
 void create_map();
@@ -212,6 +216,52 @@ void portal_dynamics(GameObject* from, GameObject* to) {
 	}
 }
 
+bool find_collistion(GameObject* game_object, GameObject* block)
+{
+	vec3 loc = game_object->get_location();
+
+	vec3 b_loc = block->get_location();
+	vec3 b_scale = block->get_scale();
+
+	if (abs(loc.x - b_loc.x) < b_scale.x / 2 && abs(loc.y - b_loc.y) < b_scale.y / 2 && abs(loc.z - b_loc.z) < b_scale.z) return true;
+	return false;
+}
+
+vec3 find_collision_n_of_block(GameObject* game_object, GameObject* block)
+{
+	vec3 game_object_location = game_object->get_location();
+	vec3 block_location = block->get_location();
+	vec3 block_scale = block->get_scale();
+
+	float distance[6];
+	distance[0] = abs(game_object_location.x - (block_location.x - block_scale.x / 2));
+	distance[1] = abs(game_object_location.x - (block_location.x + block_scale.x / 2));
+	distance[2] = abs(game_object_location.y - (block_location.y - block_scale.y / 2));
+	distance[3] = abs(game_object_location.y - (block_location.y + block_scale.y / 2));
+	distance[4] = abs(game_object_location.z - (block_location.z - block_scale.z / 2));
+	distance[5] = abs(game_object_location.z - (block_location.z + block_scale.z / 2));
+
+	float min_distance = distance[0];
+	int min_index = 0;
+	for (int i = 1; i < 6; i++)
+	{
+		if (min_distance > distance[i])
+		{
+			min_distance = distance[i];
+			min_index = i;
+		}
+	}
+
+	if (min_index == 0) return vec3(-1.0f, 0.0f, 0.0f);
+	if (min_index == 1) return vec3(1.0f, 0.0f, 0.0f);
+	if (min_index == 2) return vec3(0.0f, -1.0f, 0.0f);
+	if (min_index == 3) return vec3(0.0f, 1.0f, 0.0f);
+	if (min_index == 4) return vec3(0.0f, 0.0f, -1.0f);
+	if (min_index == 5) return vec3(0.0f, 0.0f, 1.0f);
+
+	return vec3(0.0f, 1.0f, 0.0f);
+}
+
 void collision_handler() {
 	vec3 loc = sphere->get_location();
 	vec3 moving_vector = loc - prev_loc;
@@ -309,6 +359,50 @@ void update()
 
 	if (blue_bullet)
 	{
+		for (auto& block : blocks)
+		{
+			if (block->get_type() == 0  && find_collistion(blue_bullet, block))
+			{
+				vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
+				vec3 portal_location = blue_bullet->get_location() + portal_up * vec3(1.5f, 1.5f, 1.5f);
+				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(69.0f, 69.0f, 69.0f);
+
+				temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1); // z-axis
+				blocks.push_back(temp_portal_b);
+				blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+
+				delete blue_bullet;
+				blue_bullet = nullptr;
+				delete blue_bullet_renderer;
+				blue_bullet_renderer = nullptr;
+				break;
+			}
+		}
+	}
+	if (yellow_bullet)
+	{
+		for (auto& block : blocks)
+		{
+			if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
+			{
+				vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
+				vec3 portal_location = yellow_bullet->get_location() + portal_up * vec3(1.5f, 1.5f, 1.5f);
+				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(69.0f, 69.0f, 69.0f);
+				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1); // z-axis
+				blocks.push_back(temp_portal_o);
+				yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+
+				delete yellow_bullet;
+				yellow_bullet = nullptr;
+				delete yellow_bullet_renderer;
+				yellow_bullet_renderer = nullptr;
+				break;
+			}
+		}
+	}
+
+	if (blue_bullet)
+	{
 		blue_bullet->move(moving_time);
 	}
 	if (yellow_bullet)
@@ -338,6 +432,11 @@ void render()
 	{
 		renderer->render(program);
 	}
+	
+	if (blue_bullet_renderer) blue_bullet_renderer->render(program);
+	if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
+	if (blue_portal_renderer) blue_portal_renderer->render(program);
+	if (yellow_portal_renderer) yellow_portal_renderer->render(program);
 
 	// swap front and back buffers, and display to screen
 	glfwSwapBuffers( window );
@@ -393,17 +492,23 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 {
 	if(button==GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && blue_bullet == nullptr)
 	{
+		delete blue_portal_renderer;
+		blue_portal_renderer = nullptr;
+
 		vec3 location = camera->get_eye();
-		vec3 moving_direction = camera->get_at();
+		vec3 moving_direction = camera->get_at() - location;
 		blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.001f);
-		renderers.push_back(new SphereRenderer(sphere_vertex_info, box_texture_info, blue_bullet, default_material));
+		blue_bullet_renderer = new SphereRenderer(sphere_vertex_info, box_texture_info, blue_bullet, default_material);
 	}
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && yellow_bullet == nullptr)
 	{
+		delete yellow_portal_renderer;
+		yellow_portal_renderer = nullptr;
+
 		vec3 location = camera->get_eye();
-		vec3 moving_direction = camera->get_at();
+		vec3 moving_direction = camera->get_at() - location;
 		yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.001f);
-		renderers.push_back(new SphereRenderer(sphere_vertex_info, box_texture_info, yellow_bullet, default_material));
+		yellow_bullet_renderer = new SphereRenderer(sphere_vertex_info, box_texture_info, yellow_bullet, default_material);
 	}
 }
 
@@ -466,16 +571,6 @@ void create_map()
 	box = new GameObject({ 200.0f, -100.0f, 40.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 100.0f }, 0);
 	blocks.push_back(box);
 
-	
-	//temp_portal_b = new GameObject({ -984.5f, 50.0f, 40.0f }, { 1.0f, 0.0f, 0.0f }, PI, { 3.0f, 70.0f, 70.0f }, 1); // x-axis
-	//temp_portal_b = new GameObject({ 200.0f, -23.5f, 40.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, { 70.0f, 3.0f, 70.0f }, 1); // y-axis
-	temp_portal_b = new GameObject({ -650.0f, 50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 1); // z-axis
-	blocks.push_back(temp_portal_b);
-	//temp_portal_o = new GameObject({ -251.5f, -100.0f, 40.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 3.0f, 70.0f, 70.0f }, 2); // x-axis
-	temp_portal_o = new GameObject({ -650.0f, -50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 2); // z-axis
-	blocks.push_back(temp_portal_o);
-
-
 	GameObject* wall;
 	wall = new GameObject({ -1000.0f, 0.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 530.0f }, 0);
 	blocks.push_back(wall);
@@ -504,14 +599,6 @@ void create_game_object()
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
-		else if (texture_type == 1) {
-			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, b, default_material);
-			renderers.push_back(blockRenderer);
-		}
-		else if (texture_type == 2) {
-			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info,	orange_portal_texture_info, b, default_material);
-			renderers.push_back(blockRenderer);
-		}
 		
 	}
 }
@@ -530,7 +617,7 @@ int main( int argc, char* argv[] )
 	);
 
 	// create window and initialize OpenGL extensions
-	//if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
+	// if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
 	if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
 	if (!cg_init_extensions(window)) { glfwTerminate(); return 1; }	// version and extensions
 	// initializations and validations
