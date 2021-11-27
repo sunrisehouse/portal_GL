@@ -271,7 +271,6 @@ vec3 find_collision_n_of_block(GameObject* game_object, GameObject* block)
 			min_index = i;
 		}
 	}
-	printf("minindex == %d\n", min_index);
 	if (min_index == 0) return vec3(-1.0f, 0.0f, 0.0f);
 	if (min_index == 1) return vec3(1.0f, 0.0f, 0.0f);
 	if (min_index == 2) return vec3(0.0f, -1.0f, 0.0f);
