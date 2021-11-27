@@ -56,6 +56,7 @@ bool portal_trans = false;
 bool time_catcher = false;
 float jump_power = 350;
 float upward_speed = 0;
+float upward_backup = 0;
 float timer = 0.0f;
 vec3 prev_loc;
 vec4 trans_vec;
@@ -196,7 +197,8 @@ void portal_dynamics(GameObject* from, GameObject* to) {
 	}
 	if (from->get_up() == vec3(0, 0, 1)) {
 		if (to->get_up() == vec3(0, 0, 1)) {
-			upward_speed = abs(upward_speed);
+			sphere->set_z(sphere->get_location().z + 20.0f);
+			upward_speed = std::max(abs(upward_speed), abs(upward_backup));
 		}
 		else {
 			trans_vec = vec4(to->get_up().x, to->get_up().y, to->get_up().z, -upward_speed);
@@ -226,6 +228,7 @@ void collision_handler() {
 					if (b->get_type() == 0) {
 						if (prev_loc.z - b_loc.z > b_scale.z) {
 							onGround = true;
+							upward_backup = upward_speed;
 							upward_speed = 0;
 							sphere->set_z(b_loc.z + b_scale.z + 0.1f);
 						}
@@ -429,6 +432,7 @@ void user_init()
 
 void user_finalize()
 {
+
 }
 
 void create_graphic_object()
@@ -467,12 +471,12 @@ void create_map()
 	blocks.push_back(box);
 
 	
-	//temp_portal_b = new GameObject({ -984.5f, 50.0f, 40.0f }, { 1.0f, 0.0f, 0.0f }, PI, { 3.0f, 70.0f, 70.0f }, 1); // x-axis
-	//temp_portal_b = new GameObject({ 200.0f, -23.5f, 40.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, { 70.0f, 3.0f, 70.0f }, 1); // y-axis
-	temp_portal_b = new GameObject({ -650.0f, 50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 1); // z-axis
+	//temp_portal_b = new GameObject({ -984.5f, 50.0f, 40.0f }, { 1.0f, 0.0f, 0.0f }, PI, { 5.0f, 70.0f, 70.0f }, 1); // x-axis
+	//temp_portal_b = new GameObject({ 200.0f, -23.5f, 40.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, { 70.0f, 5.0f, 70.0f }, 1); // y-axis
+	temp_portal_b = new GameObject({ -650.0f, 50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 5.0f }, 1); // z-axis
 	blocks.push_back(temp_portal_b);
-	//temp_portal_o = new GameObject({ -251.5f, -100.0f, 40.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 3.0f, 70.0f, 70.0f }, 2); // x-axis
-	temp_portal_o = new GameObject({ -650.0f, -50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 2); // z-axis
+	//temp_portal_o = new GameObject({ -251.5f, -100.0f, 40.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 5.0f, 70.0f, 70.0f }, 2); // x-axis
+	temp_portal_o = new GameObject({ -650.0f, -50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 5.0f }, 2); // z-axis
 	blocks.push_back(temp_portal_o);
 
 
@@ -528,7 +532,7 @@ int main( int argc, char* argv[] )
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
-
+	
 	// create window and initialize OpenGL extensions
 	//if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
 	if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
