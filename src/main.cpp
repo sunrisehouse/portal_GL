@@ -392,7 +392,7 @@ void update()
 				vec3 portal_location = yellow_bullet->get_location() + portal_up * vec3(1.5f, 1.5f, 1.5f);
 				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(69.0f, 69.0f, 69.0f);
 
-				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1); // z-axis
+				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2); // z-axis
 				blocks.push_back(temp_portal_o);
 				yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
 
