@@ -101,6 +101,12 @@
     <ClCompile Include="GameMovingObject.cpp">
       <Filter>Source Files\game_model</Filter>
     </ClCompile>
+    <ClCompile Include="PlaneVerticesBinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PlaneRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cgmath.h">
@@ -159,6 +165,12 @@
     </ClInclude>
     <ClInclude Include="GameMovingObject.h">
       <Filter>Header Files\game_model</Filter>
+    </ClInclude>
+    <ClInclude Include="PlaneVerticesBinder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlaneRenderer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,6 +20,8 @@
 #include "BlockVerticesBinder.h"
 #include "SphereVerticesBinder.h"
 #include "MousePositionHistory.h"
+#include "PlaneVerticesBinder.h"
+#include "PlaneRenderer.h"
 
 //*************************************
 // global constants
@@ -66,18 +68,26 @@ Camera*		camera = nullptr;
 Light* light = nullptr;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
 MousePositionHistory* mouse_position_history = nullptr;
+
+//*************************************
+
+int vertex_shading_mode = 0;
+int fragment_shading_mode = 0;
+
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
 bool is_polygon_mode = false;
 
 //*************************************
 
-BindedVertexInfo* sphere_vertex_info;
-BindedVertexInfo* block_vertex_info;
-BindedTextureInfo* box_texture_info;
-BindedTextureInfo* blue_portal_texture_info;
-BindedTextureInfo* orange_portal_texture_info;
-Material* default_material;
+BindedVertexInfo* sphere_vertex_info = nullptr;
+BindedVertexInfo* block_vertex_info = nullptr;
+BindedVertexInfo* plane_vertex_info = nullptr;
+BindedTextureInfo* box_texture_info = nullptr;
+BindedTextureInfo* blue_portal_texture_info = nullptr;
+BindedTextureInfo* orange_portal_texture_info = nullptr;
+BindedTextureInfo* plane_texture_info = nullptr;
+Material* default_material = nullptr;
 
 //*************************************
 
@@ -423,14 +433,22 @@ void render()
 	// notify GL that we use our own program
 	glUseProgram( program );
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
+	glUniform1i(glGetUniformLocation(program, "vertex_shading_mode"), 0);
+	
+	if (view_projection_matrix)
+	{
+		glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
+		glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
+	}
 
 	// setup light properties
-	glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
-	glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
-	glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
-	glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
+	if (light)
+	{
+		glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
+		glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
+		glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
+		glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
+	}
 
 	for (auto& renderer : renderers)
 	{
@@ -545,16 +563,26 @@ void create_graphic_object()
 {
 	sphere_vertex_info = SphereVerticesBinder::bind();
 	block_vertex_info = BlockVerticesBinder::bind();
+	plane_vertex_info = PlaneVerticesBinder::bind();
 
 	box_texture_info = TextureBinder::bind("textures/box.png");
 	blue_portal_texture_info = TextureBinder::bind("textures/blue_portal.png");
 	orange_portal_texture_info = TextureBinder::bind("textures/orange_portal.png");
+	plane_texture_info = TextureBinder::bind("textures/orange_portal.png");
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		1000.0f
 	);
+}
+
+void initialize_start_page()
+{
+	GameObject* page;
+	page = new GameObject({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, { 1.0f, 1.0f, 1.0f }, 0);
+	PlaneRenderer* planeRenderer = new PlaneRenderer(plane_vertex_info, plane_texture_info, page, default_material);
+	renderers.push_back(planeRenderer);
 }
 
 void initialize_practice_game()
@@ -626,7 +654,8 @@ int main( int argc, char* argv[] )
 
 	create_graphic_object();
 
-	initialize_practice_game();
+	initialize_start_page();
+	//initialize_practice_game();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
