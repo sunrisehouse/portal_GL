@@ -115,6 +115,8 @@ Renderer* yellow_portal_renderer = nullptr;
 //*************************************
 void create_map();
 void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
+void initialize_practice_game2();
+void delete_game();
 
 void change_aim_by_mouse(GameAimingObject* game_object, vec2 mouse_path)
 {
@@ -580,7 +582,7 @@ void print_help()
 
 void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
-	if(action==GLFW_PRESS)
+	if (action == GLFW_PRESS)
 	{
 		if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)	glfwSetWindowShouldClose(window, GL_TRUE);
 		else if (key == GLFW_KEY_H || key == GLFW_KEY_F1)	print_help();
@@ -593,6 +595,10 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else if (key == GLFW_KEY_S)	mov_key.down = true;
 		else if (key == GLFW_KEY_D)	mov_key.right = true;
 		else if (key == GLFW_KEY_SPACE) jump();
+		else if (key == GLFW_KEY_K) {
+			delete_game();
+			initialize_practice_game2();
+		}
 	}
 	else if (action == GLFW_RELEASE)
 	{
@@ -748,6 +754,104 @@ void initialize_practice_game()
 		}
 
 	}
+}
+
+void initialize_practice_game2()
+{
+	camera = new Camera();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	mouse_position_history = new MousePositionHistory();
+	light = new Light(
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		vec4(0.8f, 0.8f, 0.8f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+
+	GameObject* plain;
+	plain = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plain);
+	plain = new GameObject({ -900.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plain);
+	plain = new GameObject({ -650.0f, 0.0f, -300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 300.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plain);
+
+
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+
+	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
+	renderers.push_back(sphereRenderer);
+	/*
+	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
+	blocks.push_back(temp_portal_b);
+	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+
+	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
+	blocks.push_back(temp_portal_o);
+	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+	*/
+
+	for (auto& b : blocks) {
+		int texture_type = b->get_type();
+		if (texture_type == 0) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+
+	}
+}
+
+void delete_game()
+{
+	delete camera;
+	camera = nullptr;
+	delete view_projection_matrix;
+	view_projection_matrix = nullptr;
+	delete mouse_position_history;
+	mouse_position_history = nullptr;
+	delete light;
+	light = nullptr;
+
+	for (auto& block : blocks)
+	{
+		delete block;
+		block = nullptr;
+	}
+
+	blocks.clear();
+	
+	delete sphere;
+	sphere = nullptr;
+
+	for (auto& renderer : renderers)
+	{
+		delete renderer;
+		renderer = nullptr;
+	}
+
+	renderers.clear();
+
+	delete blue_bullet;
+	blue_bullet = nullptr;
+
+	delete yellow_bullet;
+	yellow_bullet = nullptr;
+
+	delete blue_portal_renderer;
+	blue_portal_renderer = nullptr;
+
+	delete yellow_portal_renderer;
+	yellow_portal_renderer = nullptr;
+
+	/*
+	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
+	blocks.push_back(temp_portal_b);
+	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+
+	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
+	blocks.push_back(temp_portal_o);
+	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+	*/
 }
 
 int main( int argc, char* argv[] )
