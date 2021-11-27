@@ -192,6 +192,7 @@ void gravity_handler(float moving_time) {
 void portal_dynamics(GameObject* from, GameObject* to) {
 	sphere->set_location(to->get_location() + 10.0f * to->get_up());
 	portal_switch = false;
+
 	if (to->get_up() != vec3(0, 0, 1)) {
 		vec3 std_vec = vec3(0, 1, 0);
 		float delta_theta = (std_vec.x * to->get_up().y - std_vec.y * to->get_up().x) > 0.0f ?
@@ -253,7 +254,7 @@ vec3 find_collision_n_of_block(GameObject* game_object, GameObject* block)
 			min_index = i;
 		}
 	}
-	printf("m: %d\n", min_index);
+
 	if (min_index == 0) return vec3(-1.0f, 0.0f, 0.0f);
 	if (min_index == 1) return vec3(1.0f, 0.0f, 0.0f);
 	if (min_index == 2) return vec3(0.0f, -1.0f, 0.0f);
@@ -332,9 +333,11 @@ void update()
 	prev_loc = sphere->get_location();
 	if(mov_key) sphere_movement(moving_time);
 	gravity_handler(moving_time);
+
 	for (auto& b : blocks) {
 		collision_handler();
 	}
+
 	if (!portal_switch) {
 		if (!time_catcher) {
 			timer = current_time;
@@ -367,10 +370,10 @@ void update()
 			if (block->get_type() == 0  && find_collistion(blue_bullet, block))
 			{
 				vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
-				vec3 portal_location = blue_bullet->get_location() + portal_up * vec3(1.5f, 1.5f, 1.5f);
-				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(69.0f, 69.0f, 69.0f);
-
-				temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1); // z-axis
+				vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 13.0f);
+				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
+				
+				temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
 				blocks.push_back(temp_portal_b);
 				blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
 
@@ -389,10 +392,10 @@ void update()
 			if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
 			{
 				vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
-				vec3 portal_location = yellow_bullet->get_location() + portal_up * vec3(1.5f, 1.5f, 1.5f);
-				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(69.0f, 69.0f, 69.0f);
+				vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 13.0f);
+				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
 
-				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2); // z-axis
+				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
 				blocks.push_back(temp_portal_o);
 				yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
 
@@ -601,6 +604,15 @@ void initialize_practice_game()
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
+	/*
+	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
+	blocks.push_back(temp_portal_b);
+	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+
+	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
+	blocks.push_back(temp_portal_o);
+	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+	*/
 
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
