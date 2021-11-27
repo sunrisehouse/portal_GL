@@ -67,9 +67,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MousePositionHistory.cpp" />
+    <ClCompile Include="PlaneVerticesBinder.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SphereRenderer.cpp" />
     <ClCompile Include="SphereVerticesBinder.cpp" />
+    <ClCompile Include="StartPageRenderer.cpp" />
     <ClCompile Include="TextureBinder.cpp" />
     <ClCompile Include="ViewProjectionMatrix.cpp" />
   </ItemGroup>
@@ -88,9 +90,11 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MousePositionHistory.h" />
+    <ClInclude Include="PlaneVerticesBinder.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SphereRenderer.h" />
     <ClInclude Include="SphereVerticesBinder.h" />
+    <ClInclude Include="StartPageRenderer.h" />
     <ClInclude Include="TextureBinder.h" />
     <ClInclude Include="ViewProjectionMatrix.h" />
   </ItemGroup>

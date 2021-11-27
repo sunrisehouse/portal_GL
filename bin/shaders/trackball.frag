@@ -36,16 +36,23 @@ vec4 phong( vec3 l, vec3 n, vec3 h, vec4 Kd )
 
 void main()
 {
-	// light position in the eye space
-	vec4 lpos = view_matrix*light_position;
+	if (mode != 3)
+	{
+		// light position in the eye space
+		vec4 lpos = view_matrix*light_position;
 
-	vec3 n = normalize(norm);	// norm interpolated via rasterizer should be normalized again here
-	vec3 p = epos.xyz;			// 3D position of this fragment
-	vec3 l = normalize(lpos.xyz-(lpos.a==0.0?vec3(0):p));	// lpos.a==0 means directional light
-	vec3 v = normalize(-p);		// eye-epos = vec3(0)-epos
-	vec3 h = normalize(l+v);	// the halfway vector
+		vec3 n = normalize(norm);	// norm interpolated via rasterizer should be normalized again here
+		vec3 p = epos.xyz;			// 3D position of this fragment
+		vec3 l = normalize(lpos.xyz-(lpos.a==0.0?vec3(0):p));	// lpos.a==0 means directional light
+		vec3 v = normalize(-p);		// eye-epos = vec3(0)-epos
+		vec3 h = normalize(l+v);	// the halfway vector
 
-	vec4 iKd = texture( TEX, tc );	// Kd from image
-	if(mode==0)			fragColor = phong( l, n, h, iKd );
-	else if(mode==1 || mode == 2)			fragColor = iKd;
+		vec4 iKd = texture( TEX, tc );	// Kd from image
+		if(mode==0)			fragColor = phong( l, n, h, iKd );
+		else if(mode==1 || mode == 2)			fragColor = iKd;
+	}
+	else
+	{
+		fragColor = texture( TEX, tc );
+	}
 }

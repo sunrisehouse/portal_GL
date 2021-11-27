@@ -20,6 +20,8 @@
 #include "BlockVerticesBinder.h"
 #include "SphereVerticesBinder.h"
 #include "MousePositionHistory.h"
+#include "StartPageRenderer.h"
+#include "PlaneVerticesBinder.h"
 
 //*************************************
 // global constants
@@ -69,14 +71,17 @@ MousePositionHistory* mouse_position_history = nullptr;
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
 bool is_polygon_mode = false;
+bool is_start_page = false;
 
 //*************************************
 
 BindedVertexInfo* sphere_vertex_info;
 BindedVertexInfo* block_vertex_info;
+BindedVertexInfo* plane_vertex_info;
 BindedTextureInfo* box_texture_info;
 BindedTextureInfo* blue_portal_texture_info;
 BindedTextureInfo* orange_portal_texture_info;
+BindedTextureInfo* start_page_texture_info;
 Material* default_material;
 
 //*************************************
@@ -100,6 +105,8 @@ Renderer* yellow_portal_renderer = nullptr;
 //*************************************
 void create_map();
 void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
+void initialize_start_page();
+void initialize_practice_game();
 void initialize_practice_game2();
 void delete_game();
 
@@ -329,94 +336,102 @@ void reset()
 
 void update()
 {
-	float current_time = float(glfwGetTime()) * 0.4f;
-	float moving_time = current_time - prev_time;
-	prev_time = current_time;
-	prev_loc = sphere->get_location();
-	if(mov_key) sphere_movement(moving_time);
-	gravity_handler(moving_time);
+	if (is_start_page)
+	{
 
-	for (auto& b : blocks) {
-		collision_handler();
 	}
+	else
+	{
+		float current_time = float(glfwGetTime()) * 0.4f;
+		float moving_time = current_time - prev_time;
+		prev_time = current_time;
+	
+		prev_loc = sphere->get_location();
+		if(mov_key) sphere_movement(moving_time);
+		gravity_handler(moving_time);
 
-	if (!portal_switch) {
-		if (!time_catcher) {
-			timer = current_time;
-			time_catcher = true;
+		for (auto& b : blocks) {
+			collision_handler();
 		}
-		else {
-			if (current_time - timer > 0.15f) {
-				portal_switch = true;
-				time_catcher = false;
-				timer = 0.0f;
+
+		if (!portal_switch) {
+			if (!time_catcher) {
+				timer = current_time;
+				time_catcher = true;
+			}
+			else {
+				if (current_time - timer > 0.15f) {
+					portal_switch = true;
+					time_catcher = false;
+					timer = 0.0f;
+				}
 			}
 		}
-	}
-	vec2 current_position = mouse_position_history->get_current_position();
-	vec2 prev_position = mouse_position_history->get_prev_position();
-	if (current_position != prev_position) {
-		change_aim_by_mouse(sphere, current_position - prev_position);
-		mouse_position_history->make_prev_position();
-	}
-	if (sphere->get_location().z < -500.0f) {
-		sphere->set_location(initial_pos);
-	}
-	dangle_canera_to_game_object(camera, sphere);
-	view_projection_matrix->change_view_matrix(*camera);
+		vec2 current_position = mouse_position_history->get_current_position();
+		vec2 prev_position = mouse_position_history->get_prev_position();
+		if (current_position != prev_position) {
+			change_aim_by_mouse(sphere, current_position - prev_position);
+			mouse_position_history->make_prev_position();
+		}
+		if (sphere->get_location().z < -500.0f) {
+			sphere->set_location(initial_pos);
+		}
+		dangle_canera_to_game_object(camera, sphere);
+		view_projection_matrix->change_view_matrix(*camera);
 
-	if (blue_bullet)
-	{
-		for (auto& block : blocks)
+		if (blue_bullet)
 		{
-			if (block->get_type() == 0  && find_collistion(blue_bullet, block))
+			for (auto& block : blocks)
 			{
-				vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
-				vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 13.0f);
-				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
+				if (block->get_type() == 0  && find_collistion(blue_bullet, block))
+				{
+					vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
+					vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 13.0f);
+					vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
 				
-				temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
-				blocks.push_back(temp_portal_b);
-				blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+					temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
+					blocks.push_back(temp_portal_b);
+					blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
 
-				delete blue_bullet;
-				blue_bullet = nullptr;
-				delete blue_bullet_renderer;
-				blue_bullet_renderer = nullptr;
-				break;
+					delete blue_bullet;
+					blue_bullet = nullptr;
+					delete blue_bullet_renderer;
+					blue_bullet_renderer = nullptr;
+					break;
+				}
 			}
 		}
-	}
-	if (yellow_bullet)
-	{
-		for (auto& block : blocks)
+		if (yellow_bullet)
 		{
-			if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
+			for (auto& block : blocks)
 			{
-				vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
-				vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 13.0f);
-				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
+				if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
+				{
+					vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
+					vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 13.0f);
+					vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
 
-				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
-				blocks.push_back(temp_portal_o);
-				yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+					temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
+					blocks.push_back(temp_portal_o);
+					yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
 
-				delete yellow_bullet;
-				yellow_bullet = nullptr;
-				delete yellow_bullet_renderer;
-				yellow_bullet_renderer = nullptr;
-				break;
+					delete yellow_bullet;
+					yellow_bullet = nullptr;
+					delete yellow_bullet_renderer;
+					yellow_bullet_renderer = nullptr;
+					break;
+				}
 			}
 		}
-	}
 
-	if (blue_bullet)
-	{
-		blue_bullet->move(moving_time);
-	}
-	if (yellow_bullet)
-	{
-		yellow_bullet->move(moving_time);
+		if (blue_bullet)
+		{
+			blue_bullet->move(moving_time);
+		}
+		if (yellow_bullet)
+		{
+			yellow_bullet->move(moving_time);
+		}
 	}
 }
 
@@ -428,24 +443,26 @@ void render()
 	// notify GL that we use our own program
 	glUseProgram( program );
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
+	if (!is_start_page)
+	{
+		glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
+		glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
+		// setup light properties
+		glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
+		glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
+		glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
+		glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
 
-	// setup light properties
-	glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
-	glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
-	glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
-	glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
+		if (blue_bullet_renderer) blue_bullet_renderer->render(program);
+		if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
+		if (blue_portal_renderer) blue_portal_renderer->render(program);
+		if (yellow_portal_renderer) yellow_portal_renderer->render(program);
+	}
 
 	for (auto& renderer : renderers)
 	{
 		renderer->render(program);
 	}
-	
-	if (blue_bullet_renderer) blue_bullet_renderer->render(program);
-	if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
-	if (blue_portal_renderer) blue_portal_renderer->render(program);
-	if (yellow_portal_renderer) yellow_portal_renderer->render(program);
 
 	// swap front and back buffers, and display to screen
 	glfwSwapBuffers( window );
@@ -487,7 +504,7 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else if (key == GLFW_KEY_SPACE) jump();
 		else if (key == GLFW_KEY_K) {
 			delete_game();
-			initialize_practice_game2();
+			initialize_practice_game();
 		}
 	}
 	else if (action == GLFW_RELEASE)
@@ -554,10 +571,12 @@ void create_graphic_object()
 {
 	sphere_vertex_info = SphereVerticesBinder::bind();
 	block_vertex_info = BlockVerticesBinder::bind();
+	plane_vertex_info = PlaneVerticesBinder::bind();
 
 	box_texture_info = TextureBinder::bind("textures/box.png");
 	blue_portal_texture_info = TextureBinder::bind("textures/blue_portal.png");
 	orange_portal_texture_info = TextureBinder::bind("textures/orange_portal.png");
+	start_page_texture_info = TextureBinder::bind("textures/start_page.png");
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
@@ -566,8 +585,26 @@ void create_graphic_object()
 	);
 }
 
+void initialize_start_page()
+{
+	is_start_page = true;
+	camera = new Camera();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	mouse_position_history = new MousePositionHistory();
+	light = new Light(
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		vec4(0.8f, 0.8f, 0.8f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+
+	StartPageRenderer* start_page_renderer = new StartPageRenderer(plane_vertex_info, start_page_texture_info);
+	renderers.push_back(start_page_renderer);
+}
+
 void initialize_practice_game()
 {
+	is_start_page = false;
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
@@ -632,6 +669,7 @@ void initialize_practice_game()
 
 void initialize_practice_game2()
 {
+	is_start_page = false;
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
@@ -655,15 +693,6 @@ void initialize_practice_game2()
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
-	/*
-	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
-	blocks.push_back(temp_portal_b);
-	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-
-	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
-	blocks.push_back(temp_portal_o);
-	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
-	*/
 
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
@@ -742,7 +771,7 @@ int main( int argc, char* argv[] )
 
 	create_graphic_object();
 
-	initialize_practice_game();
+	initialize_start_page();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
