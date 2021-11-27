@@ -65,7 +65,6 @@ Camera*		camera = nullptr;
 Light* light = nullptr;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
 MousePositionHistory* mouse_position_history = nullptr;
-bool is_left_mouse_pressed = false;
 bool is_left_shift_pressed = false;
 bool is_left_ctrl_pressed = false;
 bool is_polygon_mode = false;
@@ -86,6 +85,8 @@ GameObject* temp_portal_b;
 GameObject* temp_portal_o;
 std::vector<GameObject*> blocks;
 std::vector<GameMovingObject*> moving_objects;
+GameMovingObject* blue_bullet;
+GameMovingObject* yellow_bullet;
 
 //*************************************
 
@@ -93,7 +94,9 @@ std::vector<Renderer*> renderers;
 
 //*************************************
 void create_map();
-void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path)
+void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
+
+void change_aim_by_mouse(GameAimingObject* game_object, vec2 mouse_path)
 {
 	float x_threshold = 0.0001f;
 	float y_threhold = 0.0001f;
@@ -138,28 +141,28 @@ vec2 cursor_to_ndc(dvec2 cursor, ivec2 window_size)
 
 void sphere_movement(float moving_time)
 {
-	float speed = sphere->get_moving_speed();
+	float speed = 500.0f;
 	vec3 forward = sphere->get_forward();
 	vec3 velocity = vec3(0.0f, 0.0f, 0.0f);
 	if (mov_key.up) {
 		vec3 loc = sphere->get_location();
 		velocity = vec3(forward.x, forward.y, 0.0f).normalize() * (is_left_shift_pressed?1.5f:1.0f);
-		sphere->set_location(loc + velocity * moving_time * sphere->get_moving_speed());
+		sphere->set_location(loc + velocity * moving_time * speed);
 	}
 	if (mov_key.down) {
 		vec3 loc = sphere->get_location();
 		velocity = -vec3(forward.x, forward.y, 0.0f).normalize()/2 * (is_left_shift_pressed ? 1.5f : 1.0f);
-		sphere->set_location(loc + velocity * moving_time * sphere->get_moving_speed());
+		sphere->set_location(loc + velocity * moving_time * speed);
 	}
 	if (mov_key.left) {
 		vec3 loc = sphere->get_location();
 		velocity = vec3(-forward.y, forward.x, 0.0f).normalize()/2 * (is_left_shift_pressed ? 1.5f : 1.0f);
-		sphere->set_location(loc + velocity * moving_time * sphere->get_moving_speed());
+		sphere->set_location(loc + velocity * moving_time * speed);
 	}
 	if (mov_key.right) {
 		vec3 loc = sphere->get_location();
 		velocity = vec3(forward.y, -forward.x, 0.0f).normalize()/2 * (is_left_shift_pressed ? 1.5f : 1.0f);
-		sphere->set_location(loc + velocity * moving_time * sphere->get_moving_speed());
+		sphere->set_location(loc + velocity * moving_time * speed);
 	}
 }
 
@@ -295,7 +298,7 @@ void update()
 	vec2 current_position = mouse_position_history->get_current_position();
 	vec2 prev_position = mouse_position_history->get_prev_position();
 	if (current_position != prev_position) {
-		change_game_object_direction(sphere, current_position - prev_position);
+		change_aim_by_mouse(sphere, current_position - prev_position);
 		mouse_position_history->make_prev_position();
 	}
 	if (sphere->get_location().z < -500.0f) {
@@ -304,9 +307,13 @@ void update()
 	dangle_canera_to_game_object(camera, sphere);
 	view_projection_matrix->change_view_matrix(*camera);
 
-	for (auto& moving_object : moving_objects)
+	if (blue_bullet)
 	{
-		moving_object->move(moving_time);
+		blue_bullet->move(moving_time);
+	}
+	if (yellow_bullet)
+	{
+		yellow_bullet->move(moving_time);
 	}
 }
 
@@ -384,20 +391,19 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 
 void mouse( GLFWwindow* window, int button, int action, int mods )
 {
-	if(button==GLFW_MOUSE_BUTTON_LEFT)
+	if(button==GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && blue_bullet == nullptr)
 	{
-		if (action == GLFW_PRESS)
-		{
-			vec3 location = camera->get_eye();
-			vec3 moving_direction = camera->get_at();
-			GameMovingObject* bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, 1.0f, moving_direction);
-			moving_objects.push_back(bullet);
-			renderers.push_back(new SphereRenderer(sphere_vertex_info, box_texture_info, bullet, default_material));
-		}
-		else if (action == GLFW_RELEASE)
-		{
-			is_left_mouse_pressed = false;
-		}
+		vec3 location = camera->get_eye();
+		vec3 moving_direction = camera->get_at();
+		blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.001f);
+		renderers.push_back(new SphereRenderer(sphere_vertex_info, box_texture_info, blue_bullet, default_material));
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && yellow_bullet == nullptr)
+	{
+		vec3 location = camera->get_eye();
+		vec3 moving_direction = camera->get_at();
+		yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 5.0f, 5.0f, 5.0f }, 0, moving_direction * 0.001f);
+		renderers.push_back(new SphereRenderer(sphere_vertex_info, box_texture_info, yellow_bullet, default_material));
 	}
 }
 
@@ -405,9 +411,6 @@ void motion( GLFWwindow* window, double x, double y )
 {
 	vec2 current_position = cursor_to_ndc(dvec2(x, y), window_size);
 	mouse_position_history->change_position(current_position);
-	if (is_left_mouse_pressed)
-	{
-	}
 }
 
 void user_init()
@@ -464,12 +467,12 @@ void create_map()
 	blocks.push_back(box);
 
 	
-	temp_portal_b = new GameObject({ -984.5f, 50.0f, 40.0f }, { 1.0f, 0.0f, 0.0f }, PI, { 3.0f, 70.0f, 70.0f }, 1); // x-axis
+	//temp_portal_b = new GameObject({ -984.5f, 50.0f, 40.0f }, { 1.0f, 0.0f, 0.0f }, PI, { 3.0f, 70.0f, 70.0f }, 1); // x-axis
 	//temp_portal_b = new GameObject({ 200.0f, -23.5f, 40.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, { 70.0f, 3.0f, 70.0f }, 1); // y-axis
-	//temp_portal_b = new GameObject({ -650.0f, 50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 1); // z-axis
+	temp_portal_b = new GameObject({ -650.0f, 50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 1); // z-axis
 	blocks.push_back(temp_portal_b);
-	temp_portal_o = new GameObject({ -251.5f, -100.0f, 40.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 3.0f, 70.0f, 70.0f }, 2); // x-axis
-	//temp_portal_o = new GameObject({ -650.0f, -50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 2); // z-axis
+	//temp_portal_o = new GameObject({ -251.5f, -100.0f, 40.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 3.0f, 70.0f, 70.0f }, 2); // x-axis
+	temp_portal_o = new GameObject({ -650.0f, -50.0f, -269.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 70.0f, 70.0f, 3.0f }, 2); // z-axis
 	blocks.push_back(temp_portal_o);
 
 
@@ -490,7 +493,7 @@ void create_map()
 
 void create_game_object()
 {
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150) , { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, 550.0f, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
