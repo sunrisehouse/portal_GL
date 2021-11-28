@@ -31,7 +31,7 @@
 static const char*	window_name = "game";
 static const char*	vert_shader_path = "shaders/trackball.vert";
 static const char*	frag_shader_path = "shaders/trackball.frag";
-static const vec3	initial_pos = vec3(0, 0, 120.0f);
+static const vec3	initial_pos = vec3(0, 0, 50.0f);
 //*************************************
 // window objects
 GLFWwindow*	window = nullptr;
@@ -310,6 +310,7 @@ void collision_handler() {
 							upward_backup = upward_speed;
 							upward_speed = 0;
 							sphere->set_z(b_loc.z + b_scale.z/2 + 0.1f);
+							break;
 						}
 						else {
 							sphere->set_location(loc - moving_vector * 1.001f);
@@ -355,7 +356,7 @@ void jump() {
 void reset()
 {
 	sphere->set_location(initial_pos);
-	sphere->set_theta(PI/2);
+	sphere->set_theta(PI*3/2);
 	temp_portal_b = nullptr;
 	delete blue_portal_renderer;
 	blue_portal_renderer = nullptr;
@@ -606,30 +607,38 @@ void print_help()
 
 void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
+
 	if (action == GLFW_PRESS)
 	{
-		if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)	glfwSetWindowShouldClose(window, GL_TRUE);
-		else if (key == GLFW_KEY_H || key == GLFW_KEY_F1)	print_help();
-		else if (key == GLFW_KEY_HOME)					camera->initialize();
-		else if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = true;
-		else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = true;
-		else if (key == GLFW_KEY_R)	reset();
-		else if (key == GLFW_KEY_W)	mov_key.up = true;
-		else if (key == GLFW_KEY_A)	mov_key.left = true;
-		else if (key == GLFW_KEY_S)	mov_key.down = true;
-		else if (key == GLFW_KEY_D)	mov_key.right = true;
-		else if (key == GLFW_KEY_SPACE)
+		if (is_start_page)
 		{
-			if (is_start_page)
+			if (key == GLFW_KEY_SPACE)
 			{
 				delete_game();
 				initialize_next_stage();
 			}
-			else
+		}
+		else {
+			if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)	glfwSetWindowShouldClose(window, GL_TRUE);
+			else if (key == GLFW_KEY_H || key == GLFW_KEY_F1)	print_help();
+			else if (key == GLFW_KEY_HOME)					camera->initialize();
+			else if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = true;
+			else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = true;
+			else if (key == GLFW_KEY_R)	reset();
+			else if (key == GLFW_KEY_W)	mov_key.up = true;
+			else if (key == GLFW_KEY_A)	mov_key.left = true;
+			else if (key == GLFW_KEY_S)	mov_key.down = true;
+			else if (key == GLFW_KEY_D)	mov_key.right = true;
+			else if (key == GLFW_KEY_K) {
+				delete_game();
+				initialize_next_stage();
+			}
+			else if (key == GLFW_KEY_SPACE)
 			{
 				jump();
 			}
 		}
+		
 	}
 	else if (action == GLFW_RELEASE)
 	{
@@ -797,7 +806,7 @@ void initialize_stage1()
 	goal = new GameObject({ -970.0f, 0.0f, 30.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
 	blocks.push_back(goal);
 
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	sphere = new GameAimingObject(initial_pos, { 0.0f, 0.0f, 1.0f }, PI*3/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
@@ -846,26 +855,39 @@ void initialize_stage2()
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI*1/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
-
-	GameObject* plane;
-	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
-	blocks.push_back(plane);
-	GameObject* black_plane;
-	black_plane = new GameObject({ -50.0f, 0.0f, 170.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 200.0f, 30.0f }, 3);
-	blocks.push_back(black_plane);
-
-	GameObject* black_wall;
-	black_wall = new GameObject({ 200.0f, 100.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 10.0f, 200.0f }, 3);
-	blocks.push_back(black_wall);
-	black_wall = new GameObject({ 200.0f, -100.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 600.0f, 10.0f, 200.0f }, 3);
-	blocks.push_back(black_wall);
-	black_wall = new GameObject({ -150.0f, 0.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 200.0f, 200.0f }, 3);
-	blocks.push_back(black_wall);
-
-
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI*3/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
+
+	GameObject* plane;
+	plane = new GameObject({ 200.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 500.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	plane = new GameObject({ -100.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	GameObject* black_plane;
+	black_plane = new GameObject({ -100.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
+	black_plane = new GameObject({ 520.0f, 0.0f, 280.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 400.0f, 500.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
+	black_plane = new GameObject({ 200.0f, 0.0f, 670.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 500.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
+
+
+
+	GameObject* black_wall;
+	black_wall = new GameObject({ 225.0f, 200.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 800.0f, 10.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 225.0f, -200.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 800.0f, 10.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ -150.0f, 0.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 500.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 600.0f, 0.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 500.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+
+	GameObject* goal;
+	goal = new GameObject({ 520.0f, 0.0f, 360.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
+	blocks.push_back(goal);
+
 
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
