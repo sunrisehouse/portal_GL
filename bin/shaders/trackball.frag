@@ -47,6 +47,6 @@ void main()
 	vec3 h = normalize(l+v);	// the halfway vector
 
 	vec4 iKd = texture( TEX, tc );	// Kd from image
-	if(mode==1 || mode == 2 || mode == 4 || mode == 5 || mode == 6 || mode == 7)			fragColor = iKd;
+	if(mode==1 || mode == 2 || mode == 4 || mode == 5 || mode == 6 || mode == 8)			fragColor = iKd;
 	else								fragColor = phong( l, n, h, iKd );
 }
