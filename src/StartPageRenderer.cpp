@@ -10,7 +10,7 @@ void StartPageRenderer::render(GLuint program)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->texture_info->get_texture());
 	glUniform1i(glGetUniformLocation(program, "TEX"), 0);
-	glUniform1i(glGetUniformLocation(program, "mode"), 3);
+	glUniform1i(glGetUniformLocation(program, "mode"), 6);
 
 	if (this->vertex_info->get_vertex_array()) glBindVertexArray(this->vertex_info->get_vertex_array());
 

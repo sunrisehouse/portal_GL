@@ -23,6 +23,8 @@
 #include "PortalZVerticesBinder.h"
 #include "SphereVerticesBinder.h"
 #include "MousePositionHistory.h"
+#include "StartPageRenderer.h"
+#include "PlaneVerticesBinder.h"
 
 //*************************************
 // global constants
@@ -67,13 +69,16 @@ float b_timer = 0.0f;
 bool b_time_catcher = false;
 float o_timer = 0.0f;
 bool o_time_catcher = false;
-int stage = 1;
+int stage = 0;
 vec3 prev_loc;
 vec4 trans_vec;
+bool is_start_page = false;
+
 //*************************************
 // scene objects
 Camera*		camera = nullptr;
 Light* light = nullptr;
+Material* default_material;
 ViewProjectionMatrix* view_projection_matrix = nullptr;
 MousePositionHistory* mouse_position_history = nullptr;
 bool is_left_shift_pressed = false;
@@ -87,6 +92,7 @@ BindedVertexInfo* block_vertex_info;
 BindedVertexInfo* portalx_vertex_info;
 BindedVertexInfo* portaly_vertex_info;
 BindedVertexInfo* portalz_vertex_info;
+BindedVertexInfo* plane_vertex_info;
 BindedTextureInfo* box_texture_info;
 BindedTextureInfo* black_box_texture_info;
 BindedTextureInfo* blue_portal_texture_info;
@@ -95,7 +101,7 @@ BindedTextureInfo* blue_bullet_texture_info;
 BindedTextureInfo* orange_bullet_texture_info;
 BindedTextureInfo* clear_portal_texture_info;
 BindedTextureInfo* enemy_texture_info;
-Material* default_material;
+BindedTextureInfo* start_page_texture_info;
 
 //*************************************
 
@@ -117,10 +123,13 @@ Renderer* yellow_portal_renderer = nullptr;
 
 //*************************************
 void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
+void initialize_next_stage();
+void initialize_start_page();
 void initialize_stage1();
 void initialize_stage2();
-void next_level();
+void delete_game();
 void reset();
+
 void change_aim_by_mouse(GameAimingObject* game_object, vec2 mouse_path)
 {
 	float x_threshold = 0.0001f;
@@ -325,7 +334,8 @@ void collision_handler() {
 						}
 					}
 					else if (b->get_type() == 4) {
-						next_level();
+						delete_game();
+						initialize_next_stage();
 						break;
 					}
 				}
@@ -365,175 +375,178 @@ void reset()
 
 void update()
 {
-	float current_time = float(glfwGetTime()) * 0.4f;
-	float moving_time = current_time - prev_time;
-	prev_time = current_time;
-	prev_loc = sphere->get_location();
-	if(mov_key) sphere_movement(moving_time);
-	gravity_handler(moving_time);
-
-	for (auto& b : blocks) {
-		collision_handler();
-	}
-
-	if (!portal_switch) {
-		if (!time_catcher) {
-			timer = current_time;
-			time_catcher = true;
-		}
-		else {
-			if (current_time - timer > 0.15f) {
-				portal_switch = true;
-				time_catcher = false;
-				timer = 0.0f;
-			}
-		}
-	}
-
-	if (!blue_bullet_switch) {
-		if (!b_time_catcher) {
-			b_timer = current_time;
-			b_time_catcher = true;
-		}
-		else {
-			if (current_time - b_timer > 0.8f) {
-				delete blue_bullet;
-				blue_bullet = nullptr;
-				delete blue_bullet_renderer;
-				blue_bullet_renderer = nullptr;
-				blue_bullet_switch = true;
-				b_time_catcher = false;
-				b_timer = 0.0f;
-			}
-		}
-	}
-
-	if (!orange_bullet_switch) {
-		if (!o_time_catcher) {
-			o_timer = current_time;
-			o_time_catcher = true;
-		}
-		else {
-			if (current_time - o_timer > 0.8f) {
-				delete yellow_bullet;
-				yellow_bullet = nullptr;
-				delete yellow_bullet_renderer;
-				yellow_bullet_renderer = nullptr;
-				orange_bullet_switch = true;
-				o_time_catcher = false;
-				o_timer = 0.0f;
-			}
-		}
-	}
-	vec2 current_position = mouse_position_history->get_current_position();
-	vec2 prev_position = mouse_position_history->get_prev_position();
-	if (current_position != prev_position) {
-		change_aim_by_mouse(sphere, current_position - prev_position);
-		mouse_position_history->make_prev_position();
-	}
-	if (sphere->get_location().z < -500.0f) {
-		sphere->set_location(initial_pos);
-	}
-	dangle_canera_to_game_object(camera, sphere);
-	view_projection_matrix->change_view_matrix(*camera);
-
-	if (blue_bullet)
+	if (!is_start_page)
 	{
-		for (auto& block : blocks)
+		float current_time = float(glfwGetTime()) * 0.4f;
+		float moving_time = current_time - prev_time;
+		prev_time = current_time;
+		prev_loc = sphere->get_location();
+		if(mov_key) sphere_movement(moving_time);
+		gravity_handler(moving_time);
+
+		for (auto& b : blocks) {
+			collision_handler();
+		}
+
+		if (!portal_switch) {
+			if (!time_catcher) {
+				timer = current_time;
+				time_catcher = true;
+			}
+			else {
+				if (current_time - timer > 0.15f) {
+					portal_switch = true;
+					time_catcher = false;
+					timer = 0.0f;
+				}
+			}
+		}
+
+		if (!blue_bullet_switch) {
+			if (!b_time_catcher) {
+				b_timer = current_time;
+				b_time_catcher = true;
+			}
+			else {
+				if (current_time - b_timer > 0.8f) {
+					delete blue_bullet;
+					blue_bullet = nullptr;
+					delete blue_bullet_renderer;
+					blue_bullet_renderer = nullptr;
+					blue_bullet_switch = true;
+					b_time_catcher = false;
+					b_timer = 0.0f;
+				}
+			}
+		}
+
+		if (!orange_bullet_switch) {
+			if (!o_time_catcher) {
+				o_timer = current_time;
+				o_time_catcher = true;
+			}
+			else {
+				if (current_time - o_timer > 0.8f) {
+					delete yellow_bullet;
+					yellow_bullet = nullptr;
+					delete yellow_bullet_renderer;
+					yellow_bullet_renderer = nullptr;
+					orange_bullet_switch = true;
+					o_time_catcher = false;
+					o_timer = 0.0f;
+				}
+			}
+		}
+		vec2 current_position = mouse_position_history->get_current_position();
+		vec2 prev_position = mouse_position_history->get_prev_position();
+		if (current_position != prev_position) {
+			change_aim_by_mouse(sphere, current_position - prev_position);
+			mouse_position_history->make_prev_position();
+		}
+		if (sphere->get_location().z < -500.0f) {
+			sphere->set_location(initial_pos);
+		}
+		dangle_canera_to_game_object(camera, sphere);
+		view_projection_matrix->change_view_matrix(*camera);
+
+		if (blue_bullet)
 		{
-			if (block->get_type() == 0  && find_collistion(blue_bullet, block))
+			for (auto& block : blocks)
 			{
-				vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
-				vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
-				vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
+				if (block->get_type() == 0  && find_collistion(blue_bullet, block))
+				{
+					vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
+					vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
+					vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
 				
-				temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
-				blocks.push_back(temp_portal_b);
-				if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1,0,0)) {
-					blue_portal_renderer = new BlockRenderer(portalx_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-				}
-				else if (portal_up == vec3(0, 1, 0) || portal_up == vec3(0, -1, 0)) {
-					blue_portal_renderer = new BlockRenderer(portaly_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-				}
-				else if (portal_up == vec3(0, 0, 1) || portal_up == vec3(0, 0, -1)) {
-					blue_portal_renderer = new BlockRenderer(portalz_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-				}
+					temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
+					blocks.push_back(temp_portal_b);
+					if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1,0,0)) {
+						blue_portal_renderer = new BlockRenderer(portalx_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+					}
+					else if (portal_up == vec3(0, 1, 0) || portal_up == vec3(0, -1, 0)) {
+						blue_portal_renderer = new BlockRenderer(portaly_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+					}
+					else if (portal_up == vec3(0, 0, 1) || portal_up == vec3(0, 0, -1)) {
+						blue_portal_renderer = new BlockRenderer(portalz_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
+					}
 				
 
-				delete blue_bullet;
-				blue_bullet = nullptr;
-				delete blue_bullet_renderer;
-				blue_bullet_renderer = nullptr;
-				blue_bullet_switch = true;
-				b_time_catcher = false;
-				b_timer = 0.0f;
-				break;
-			}
-			else if ((block->get_type() == 3 || block->get_type() == 4 || block->get_type() == 5) && find_collistion(blue_bullet, block))
-			{
-				delete blue_bullet;
-				blue_bullet = nullptr;
-				delete blue_bullet_renderer;
-				blue_bullet_renderer = nullptr; 
-				blue_bullet_switch = true;
-				b_time_catcher = false;
-				b_timer = 0.0f;
-				break;
+					delete blue_bullet;
+					blue_bullet = nullptr;
+					delete blue_bullet_renderer;
+					blue_bullet_renderer = nullptr;
+					blue_bullet_switch = true;
+					b_time_catcher = false;
+					b_timer = 0.0f;
+					break;
+				}
+				else if ((block->get_type() == 3 || block->get_type() == 4 || block->get_type() == 5) && find_collistion(blue_bullet, block))
+				{
+					delete blue_bullet;
+					blue_bullet = nullptr;
+					delete blue_bullet_renderer;
+					blue_bullet_renderer = nullptr; 
+					blue_bullet_switch = true;
+					b_time_catcher = false;
+					b_timer = 0.0f;
+					break;
+				}
 			}
 		}
-	}
-	if (yellow_bullet)
-	{
-		for (auto& block : blocks)
+		if (yellow_bullet)
 		{
-			if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
+			for (auto& block : blocks)
 			{
-				vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
-				vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
-				vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
+				if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
+				{
+					vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
+					vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
+					vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
 
-				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
-				blocks.push_back(temp_portal_o);
-				if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1, 0, 0)) {
-					yellow_portal_renderer = new BlockRenderer(portalx_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+					temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
+					blocks.push_back(temp_portal_o);
+					if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1, 0, 0)) {
+						yellow_portal_renderer = new BlockRenderer(portalx_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+					}
+					else if (portal_up == vec3(0, 1, 0) || portal_up == vec3(0, -1, 0)) {
+						yellow_portal_renderer = new BlockRenderer(portaly_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+					}
+					else if (portal_up == vec3(0, 0, 1) || portal_up == vec3(0, 0, -1)) {
+						yellow_portal_renderer = new BlockRenderer(portalz_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
+					}
+					delete yellow_bullet;
+					yellow_bullet = nullptr;
+					delete yellow_bullet_renderer;
+					yellow_bullet_renderer = nullptr;
+					orange_bullet_switch = true;
+					o_time_catcher = false;
+					o_timer = 0.0f;
+					break;
 				}
-				else if (portal_up == vec3(0, 1, 0) || portal_up == vec3(0, -1, 0)) {
-					yellow_portal_renderer = new BlockRenderer(portaly_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
-				}
-				else if (portal_up == vec3(0, 0, 1) || portal_up == vec3(0, 0, -1)) {
-					yellow_portal_renderer = new BlockRenderer(portalz_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
-				}
-				delete yellow_bullet;
-				yellow_bullet = nullptr;
-				delete yellow_bullet_renderer;
-				yellow_bullet_renderer = nullptr;
-				orange_bullet_switch = true;
-				o_time_catcher = false;
-				o_timer = 0.0f;
-				break;
-			}
-			else if ((block->get_type() == 3 || block->get_type() == 4 || block->get_type() == 5)&& find_collistion(yellow_bullet, block))
-			{
-				delete yellow_bullet;
-				yellow_bullet = nullptr;
-				delete yellow_bullet_renderer;
-				yellow_bullet_renderer = nullptr;
-				orange_bullet_switch = true;
-				o_time_catcher = false;
-				o_timer = 0.0f;
+				else if ((block->get_type() == 3 || block->get_type() == 4 || block->get_type() == 5)&& find_collistion(yellow_bullet, block))
+				{
+					delete yellow_bullet;
+					yellow_bullet = nullptr;
+					delete yellow_bullet_renderer;
+					yellow_bullet_renderer = nullptr;
+					orange_bullet_switch = true;
+					o_time_catcher = false;
+					o_timer = 0.0f;
 
-				break;
+					break;
+				}
 			}
 		}
-	}
 
-	if (blue_bullet)
-	{
-		blue_bullet->move(moving_time);
-	}
-	if (yellow_bullet)
-	{
-		yellow_bullet->move(moving_time);
+		if (blue_bullet)
+		{
+			blue_bullet->move(moving_time);
+		}
+		if (yellow_bullet)
+		{
+			yellow_bullet->move(moving_time);
+		}
 	}
 }
 
@@ -545,24 +558,28 @@ void render()
 	// notify GL that we use our own program
 	glUseProgram( program );
 
-	glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
+	if (!is_start_page)
+	{
+		glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
+		glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
 
-	// setup light properties
-	glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
-	glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
-	glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
-	glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
+		// setup light properties
+		glUniform4fv(glGetUniformLocation(program, "light_position"), 1, light->get_position());
+		glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
+		glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
+		glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
+
+		if (blue_bullet_renderer) blue_bullet_renderer->render(program);
+		if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
+		if (blue_portal_renderer) blue_portal_renderer->render(program);
+		if (yellow_portal_renderer) yellow_portal_renderer->render(program);
+	}
 
 	for (auto& renderer : renderers)
 	{
 		renderer->render(program);
 	}
 	
-	if (blue_bullet_renderer) blue_bullet_renderer->render(program);
-	if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
-	if (blue_portal_renderer) blue_portal_renderer->render(program);
-	if (yellow_portal_renderer) yellow_portal_renderer->render(program);
 
 	// swap front and back buffers, and display to screen
 	glfwSwapBuffers( window );
@@ -601,9 +618,17 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else if (key == GLFW_KEY_A)	mov_key.left = true;
 		else if (key == GLFW_KEY_S)	mov_key.down = true;
 		else if (key == GLFW_KEY_D)	mov_key.right = true;
-		else if (key == GLFW_KEY_SPACE) jump();
-		else if (key == GLFW_KEY_K) {
-			next_level();
+		else if (key == GLFW_KEY_SPACE)
+		{
+			if (is_start_page)
+			{
+				delete_game();
+				initialize_next_stage();
+			}
+			else
+			{
+				jump();
+			}
 		}
 	}
 	else if (action == GLFW_RELEASE)
@@ -675,6 +700,7 @@ void create_graphic_object()
 	portalx_vertex_info = PortalXVerticesBinder::bind();
 	portaly_vertex_info = PortalYVerticesBinder::bind();
 	portalz_vertex_info = PortalZVerticesBinder::bind();
+	plane_vertex_info = PlaneVerticesBinder::bind();
 
 	box_texture_info = TextureBinder::bind("textures/box.png");
 	black_box_texture_info = TextureBinder::bind("textures/black_box.png");
@@ -684,6 +710,7 @@ void create_graphic_object()
 	orange_bullet_texture_info = TextureBinder::bind("textures/orange_bullet.png");
 	clear_portal_texture_info = TextureBinder::bind("textures/clear.png");
 	enemy_texture_info = TextureBinder::bind("textures/enemy.png");
+	start_page_texture_info = TextureBinder::bind("textures/start_page.png");
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
@@ -692,8 +719,38 @@ void create_graphic_object()
 	);
 }
 
+void initialize_next_stage()
+{
+	if (stage == 0)
+	{
+		initialize_stage1();
+	}
+	else if (stage == 1)
+	{
+		initialize_stage2();
+	}
+}
+
+void initialize_start_page()
+{
+	is_start_page = true;
+	camera = new Camera();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	mouse_position_history = new MousePositionHistory();
+	light = new Light(
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		vec4(0.8f, 0.8f, 0.8f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+
+	StartPageRenderer* start_page_renderer = new StartPageRenderer(plane_vertex_info, start_page_texture_info);
+	renderers.push_back(start_page_renderer);
+}
+
 void initialize_stage1()
 {
+	stage = 1;
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
@@ -744,15 +801,6 @@ void initialize_stage1()
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
-	/*
-	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
-	blocks.push_back(temp_portal_b);
-	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-
-	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
-	blocks.push_back(temp_portal_o);
-	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
-	*/
 
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
@@ -788,6 +836,7 @@ void initialize_stage1()
 
 void initialize_stage2()
 {
+	stage = 2;
 	camera = new Camera();
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
@@ -811,15 +860,6 @@ void initialize_stage2()
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
-	/*
-	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
-	blocks.push_back(temp_portal_b);
-	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-
-	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
-	blocks.push_back(temp_portal_o);
-	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
-	*/
 
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
@@ -830,7 +870,7 @@ void initialize_stage2()
 	}
 }
 
-void next_level()
+void delete_game()
 {
 	delete camera;
 	camera = nullptr;
@@ -859,25 +899,22 @@ void next_level()
 	}
 
 	renderers.clear();
-	reset();
-	stage++;
-	if (stage == 1) {
-		initialize_stage1();
-	}
-	else if(stage == 2) {
-		initialize_stage2();
-	}
-	
 
-	/*
-	temp_portal_b = new GameObject(vec3(20.0f, 20.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 1);
-	blocks.push_back(temp_portal_b);
-	blue_portal_renderer = new BlockRenderer(block_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
-
-	temp_portal_o = new GameObject(vec3(130.0f, 130.0f, 3.0f), vec3(0.0f, 0.0f, 1.0f), 0.0f, vec3(70.0f, 70.0f, 3.0f), 2);
-	blocks.push_back(temp_portal_o);
-	yellow_portal_renderer = new BlockRenderer(block_vertex_info, orange_portal_texture_info, temp_portal_o, default_material);
-	*/
+	temp_portal_b = nullptr;
+	delete blue_portal_renderer;
+	blue_portal_renderer = nullptr;
+	temp_portal_o = nullptr;
+	delete yellow_portal_renderer;
+	yellow_portal_renderer = nullptr;
+	delete blue_bullet;
+	blue_bullet = nullptr;
+	delete blue_bullet_renderer;
+	blue_bullet_renderer = nullptr;
+	delete yellow_bullet;
+	yellow_bullet = nullptr;
+	delete yellow_bullet_renderer;
+	yellow_bullet_renderer = nullptr;
+	is_start_page = false;
 }
 
 int main( int argc, char* argv[] )
@@ -894,7 +931,7 @@ int main( int argc, char* argv[] )
 
 	create_graphic_object();
 
-	initialize_stage1();
+	initialize_start_page();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
