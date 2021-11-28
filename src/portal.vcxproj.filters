@@ -110,6 +110,12 @@
     <ClCompile Include="PortalZVerticesBinder.cpp">
       <Filter>Source Files\vertices_binder</Filter>
     </ClCompile>
+    <ClCompile Include="StartPageRenderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="PlaneVerticesBinder.cpp">
+      <Filter>Source Files\vertices_binder</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cgmath.h">
@@ -177,6 +183,12 @@
     </ClInclude>
     <ClInclude Include="PortalZVerticesBinder.h">
       <Filter>Header Files\vertices_binder</Filter>
+    </ClInclude>
+    <ClInclude Include="PlaneVerticesBinder.h">
+      <Filter>Header Files\vertices_binder</Filter>
+    </ClInclude>
+    <ClInclude Include="StartPageRenderer.h">
+      <Filter>Header Files\renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

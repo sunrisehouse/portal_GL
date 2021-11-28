@@ -36,6 +36,7 @@ vec4 phong( vec3 l, vec3 n, vec3 h, vec4 Kd )
 
 void main()
 {
+
 	// light position in the eye space
 	vec4 lpos = view_matrix*light_position;
 
@@ -46,6 +47,6 @@ void main()
 	vec3 h = normalize(l+v);	// the halfway vector
 
 	vec4 iKd = texture( TEX, tc );	// Kd from image
-	if(mode==1 || mode == 2)			fragColor = iKd;
+	if(mode==1 || mode == 2 || mode == 4 || mode == 6)			fragColor = iKd;
 	else								fragColor = phong( l, n, h, iKd );
 }
