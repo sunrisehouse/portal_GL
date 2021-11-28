@@ -31,7 +31,7 @@
 static const char*	window_name = "game";
 static const char*	vert_shader_path = "shaders/trackball.vert";
 static const char*	frag_shader_path = "shaders/trackball.frag";
-static const vec3	initial_pos = vec3(0, 0, 50.0f);
+static const vec3	initial_pos = vec3(0, 0, 100.0f);
 //*************************************
 // window objects
 GLFWwindow*	window = nullptr;
@@ -127,6 +127,7 @@ void initialize_next_stage();
 void initialize_start_page();
 void initialize_stage1();
 void initialize_stage2();
+void initialize_stage3();
 void delete_game();
 void reset();
 
@@ -337,6 +338,10 @@ void collision_handler() {
 					else if (b->get_type() == 4) {
 						delete_game();
 						initialize_next_stage();
+						break;
+					}
+					else if (b->get_type() == 5) {
+						reset();
 						break;
 					}
 				}
@@ -741,6 +746,10 @@ void initialize_next_stage()
 	{
 		initialize_stage2();
 	}
+	else if (stage == 2)
+	{
+		initialize_stage3();
+	}
 }
 
 void initialize_start_page()
@@ -774,9 +783,9 @@ void initialize_stage1()
 	);
 
 	GameObject* plane;
-	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
+	plane = new GameObject({ 0.0f, 0.0f, -37.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 50.0f }, 0);
 	blocks.push_back(plane);
-	plane = new GameObject({ -900.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 30.0f }, 0);
+	plane = new GameObject({ -900.0f, 0.0f, -37.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 50.0f }, 0);
 	blocks.push_back(plane);
 
 
@@ -839,7 +848,7 @@ void initialize_stage1()
 			}
 		}
 		else if (texture_type == 5) {
-			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, enemy_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
 	}
@@ -917,7 +926,105 @@ void initialize_stage2()
 			}
 		}
 		else if (texture_type == 5) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, enemy_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+	}
+}
+
+void initialize_stage3()
+{
+	stage = 3;
+	camera = new Camera();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	mouse_position_history = new MousePositionHistory();
+	light = new Light(
+		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		vec4(0.8f, 0.8f, 0.8f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI * 3 / 2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
+	renderers.push_back(sphereRenderer);
+
+	GameObject* plane;
+	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+
+	GameObject* enemy;
+	enemy = new GameObject({ 200.0f, 200.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
+	blocks.push_back(enemy);
+
+	GameObject* wall;
+	wall = new GameObject({ -50.0f, 0.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 530.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 500.0f, 0.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 200.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 500.0f, 250.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 200.0f }, 0);
+	blocks.push_back(wall);
+
+	wall = new GameObject({ 500.0f, 500.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 2000.0f, 30.0f, 830.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 500.0f, -500.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 2000.0f, 30.0f, 830.0f }, 0);
+	blocks.push_back(wall);
+	/*
+	plane = new GameObject({ -100.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	GameObject* black_plane;
+	black_plane = new GameObject({ -100.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
+	black_plane = new GameObject({ 520.0f, 0.0f, 280.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 400.0f, 500.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
+	black_plane = new GameObject({ 200.0f, 0.0f, 670.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 500.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
+
+
+
+	GameObject* black_wall;
+	black_wall = new GameObject({ 225.0f, 200.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 800.0f, 10.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 225.0f, -200.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 800.0f, 10.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ -150.0f, 0.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 500.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 600.0f, 0.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 500.0f, 700.0f }, 3);
+	blocks.push_back(black_wall);
+
+	GameObject* goal;
+	goal = new GameObject({ 520.0f, 0.0f, 360.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
+	blocks.push_back(goal);
+
+	*/
+	
+
+	for (auto& b : blocks) {
+		int texture_type = b->get_type();
+		if (texture_type == 0) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+		else if (texture_type == 3) {
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+		else if (texture_type == 4) {
+			if (b->get_up() == vec3(1, 0, 0) || b->get_up() == vec3(-1, 0, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalx_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 1, 0) || b->get_up() == vec3(0, -1, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portaly_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 0, 1) || b->get_up() == vec3(0, 0, -1)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalz_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+		}
+		else if (texture_type == 5) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, enemy_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
 	}
