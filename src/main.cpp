@@ -1143,7 +1143,7 @@ void initial_end_stage() {
 	wall = new GameObject({ 0.0f, 300.0f, 270.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
 	blocks.push_back(wall);
 
-	wall = new GameObject({ 500.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 500.0f, 500.0f }, 8);
+	wall = new GameObject({ 500.0f, 0.0f, 300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 500.0f, 500.0f }, 8);
 	blocks.push_back(wall);
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
