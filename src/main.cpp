@@ -107,6 +107,7 @@ BindedTextureInfo* clear_portal_texture_info;
 BindedTextureInfo* enemy_texture_info;
 BindedTextureInfo* start_page_texture_info;
 BindedTextureInfo* help_page_texture_info;
+BindedTextureInfo* end_page_texture_info;
 
 //*************************************
 
@@ -730,7 +731,7 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 			blue_bullet_switch = false;
 			vec3 location = camera->get_eye();
 			vec3 moving_direction = camera->get_at() - location;
-			blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * moving_time * 2.5);
+			blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * 0.02f);
 			blue_bullet_renderer = new SphereRenderer(sphere_vertex_info, blue_bullet_texture_info, blue_bullet, default_material);
 		}
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && yellow_bullet == nullptr && yellow_bullet_renderer == nullptr)
@@ -741,7 +742,7 @@ void mouse( GLFWwindow* window, int button, int action, int mods )
 			orange_bullet_switch = false;
 			vec3 location = camera->get_eye();
 			vec3 moving_direction = camera->get_at() - location;
-			yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * moving_time * 2.5);
+			yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * 0.02f);
 			yellow_bullet_renderer = new SphereRenderer(sphere_vertex_info, orange_bullet_texture_info, yellow_bullet, default_material);
 		}
 	} 
@@ -799,6 +800,7 @@ void create_graphic_object()
 	enemy_texture_info = TextureBinder::bind("textures/enemy.png");
 	start_page_texture_info = TextureBinder::bind("textures/start_page.png");
 	help_page_texture_info = TextureBinder::bind("textures/help_page.png");
+	end_page_texture_info = TextureBinder::bind("textures/end_page.png");
 
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
@@ -1022,12 +1024,14 @@ void initialize_stage3()
 	renderers.push_back(sphereRenderer);
 
 	GameObject* plane;
+	GameObject* black_plane;
+
 	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 600.0f, 30.0f }, 0);
 	blocks.push_back(plane);
 	plane = new GameObject({ 750.0f, 0.0f, 170.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 500.0f, 600.0f, 30.0f }, 0);
 	blocks.push_back(plane);
-	plane = new GameObject({ 2100.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 500.0f, 600.0f, 30.0f }, 0);
-	blocks.push_back(plane);
+	black_plane = new GameObject({ 2100.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 500.0f, 600.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
 
 	GameObject* enemy;
 	enemy = new GameObject({ 300.0f, 200.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
@@ -1050,13 +1054,13 @@ void initialize_stage3()
 
 	wall = new GameObject({ 1000.0f, 0.0f, 300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 300.0f, 800.0f }, 0);
 	blocks.push_back(wall);
-
-	wall = new GameObject({ 2350.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 600.0f }, 0);
-	blocks.push_back(wall);
-	wall = new GameObject({ 2150.0f, -300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
-	blocks.push_back(wall);
-	wall = new GameObject({ 2150.0f, 300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
-	blocks.push_back(wall);
+	GameObject* black_wall;
+	black_wall = new GameObject({ 2350.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 600.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 2150.0f, -300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 2150.0f, 300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 3);
+	blocks.push_back(black_wall);
 
 	GameObject* black_box;
 	GameObject* box;
@@ -1134,7 +1138,10 @@ void initial_end_stage() {
 	blocks.push_back(wall);
 	wall = new GameObject({ 0.0f, -300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
 	blocks.push_back(wall);
-	wall = new GameObject({ 0.0f, 300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
+	wall = new GameObject({ 0.0f, 300.0f, 270.0f }, { -1.0f, 0.0f, 0.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
+	blocks.push_back(wall);
+
+	wall = new GameObject({ 500.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 500.0f, 500.0f }, 8);
 	blocks.push_back(wall);
 	for (auto& b : blocks) {
 		int texture_type = b->get_type();
@@ -1162,6 +1169,10 @@ void initial_end_stage() {
 		}
 		else if (texture_type == 5) {
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, enemy_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+		else if (texture_type == 8) {
+			BlockRenderer* blockRenderer = new BlockRenderer(portalx_vertex_info, end_page_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
 	}
@@ -1240,8 +1251,8 @@ int main( int argc, char* argv[] )
 	window_size = cg_default_window_size(); // initial window size
 	window_size = ivec2(960, 720);
 	// create window and initialize OpenGL extensions
-	if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
-	//if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
+	//if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
+	if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
 	if (!cg_init_extensions(window)) { glfwTerminate(); return 1; }	// version and extensions
 	// initializations and validations
 	if(!(program=cg_create_program( vert_shader_path, frag_shader_path ))){ glfwTerminate(); return 1; }	// create and compile shaders/program
