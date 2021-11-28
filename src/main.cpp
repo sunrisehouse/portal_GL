@@ -152,6 +152,7 @@ void change_aim_by_mouse(GameAimingObject* game_object, vec2 mouse_path)
 	{
 		game_object->set_theta(game_object->get_theta() - mouse_path.x * 0.5f);
 	}
+
 	if(mouse_path.y >= y_threhold || mouse_path.y <= -y_threhold)
 	{
 		game_object->set_alpha(game_object->get_alpha() - mouse_path.y * 0.5f);
