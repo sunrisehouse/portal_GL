@@ -309,6 +309,7 @@ void collision_handler() {
 					else if (b->get_type() == 1 && temp_portal_o) {
 						if (portal_switch) {
 							portal_dynamics(b, temp_portal_o);
+							break;
 						}
 						else {
 							sphere->set_location(loc - moving_vector * 1.001f);
@@ -317,6 +318,7 @@ void collision_handler() {
 					else if (b->get_type() == 2 && temp_portal_b) {
 						if (portal_switch) {
 							portal_dynamics(b, temp_portal_b);
+							break;
 						}
 						else {
 							sphere->set_location(loc - moving_vector * 1.001f);
@@ -324,6 +326,7 @@ void collision_handler() {
 					}
 					else if (b->get_type() == 4) {
 						next_level();
+						break;
 					}
 				}
 			}
@@ -441,8 +444,8 @@ void update()
 			if (block->get_type() == 0  && find_collistion(blue_bullet, block))
 			{
 				vec3 portal_up = find_collision_n_of_block(blue_bullet, block);
-				vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 1.5f);
-				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
+				vec3 portal_location = blue_bullet->get_location() - blue_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
+				vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
 				
 				temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
 				blocks.push_back(temp_portal_b);
@@ -486,8 +489,8 @@ void update()
 			if (block->get_type() == 0 && find_collistion(yellow_bullet, block))
 			{
 				vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
-				vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(1.5f, 1.5f, 1.5f);
-				vec3 portal_scale = vec3(70.0f, 70.0f, 70.0f) - portal_up * portal_up * vec3(67.0f, 67.0f, 67.0f);
+				vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
+				vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
 
 				temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
 				blocks.push_back(temp_portal_o);
@@ -882,8 +885,8 @@ int main( int argc, char* argv[] )
 	window_size = cg_default_window_size(); // initial window size
 	
 	// create window and initialize OpenGL extensions
-	if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
-	//if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
+	//if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
+	if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
 	if (!cg_init_extensions(window)) { glfwTerminate(); return 1; }	// version and extensions
 	// initializations and validations
 	if(!(program=cg_create_program( vert_shader_path, frag_shader_path ))){ glfwTerminate(); return 1; }	// create and compile shaders/program
