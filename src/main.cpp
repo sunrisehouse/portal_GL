@@ -73,6 +73,8 @@ int stage = 0;
 vec3 prev_loc;
 vec4 trans_vec;
 bool is_start_page = false;
+bool is_start_help_page = false;
+bool is_help_page = false;
 
 //*************************************
 // scene objects
@@ -102,6 +104,7 @@ BindedTextureInfo* orange_bullet_texture_info;
 BindedTextureInfo* clear_portal_texture_info;
 BindedTextureInfo* enemy_texture_info;
 BindedTextureInfo* start_page_texture_info;
+BindedTextureInfo* help_page_texture_info;
 
 //*************************************
 
@@ -120,6 +123,8 @@ Renderer* blue_bullet_renderer = nullptr;
 Renderer* yellow_bullet_renderer = nullptr;
 Renderer* blue_portal_renderer = nullptr;
 Renderer* yellow_portal_renderer = nullptr;
+Renderer* start_page_image_renderer = nullptr;
+Renderer* help_page_image_renderer = nullptr;
 
 //*************************************
 void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
@@ -129,6 +134,11 @@ void initialize_stage1();
 void initialize_stage2();
 void delete_game();
 void reset();
+
+void open_start_page();
+void close_start_page();
+void open_help_page();
+void close_help_page();
 
 void change_aim_by_mouse(GameAimingObject* game_object, vec2 mouse_path)
 {
@@ -376,11 +386,11 @@ void reset()
 
 void update()
 {
-	if (!is_start_page)
+	float current_time = float(glfwGetTime()) * 0.4f;
+	float moving_time = current_time - prev_time;
+	prev_time = current_time;
+	if (!is_start_page && !is_help_page && !is_start_help_page)
 	{
-		float current_time = float(glfwGetTime()) * 0.4f;
-		float moving_time = current_time - prev_time;
-		prev_time = current_time;
 		prev_loc = sphere->get_location();
 		if(mov_key) sphere_movement(moving_time);
 		gravity_handler(moving_time);
@@ -559,7 +569,15 @@ void render()
 	// notify GL that we use our own program
 	glUseProgram( program );
 
-	if (!is_start_page)
+	if (is_start_page)
+	{
+		start_page_image_renderer->render(program);
+	}
+	else if (is_help_page)
+	{
+		help_page_image_renderer->render(program);
+	}
+	else
 	{
 		glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_TRUE, view_projection_matrix->get_view_matrix());
 		glUniformMatrix4fv(glGetUniformLocation(program, "projection_matrix"), 1, GL_TRUE, view_projection_matrix->get_projection_matrix());
@@ -569,21 +587,17 @@ void render()
 		glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
 		glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
 		glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
-	}
 
-	for (auto& renderer : renderers)
-	{
-		renderer->render(program);
-	}
+		for (auto& renderer : renderers)
+		{
+			renderer->render(program);
+		}
 
-	if (!is_start_page)
-	{
 		if (blue_bullet_renderer) blue_bullet_renderer->render(program);
 		if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
 		if (blue_portal_renderer) blue_portal_renderer->render(program);
 		if (yellow_portal_renderer) yellow_portal_renderer->render(program);
 	}
-	
 
 	// swap front and back buffers, and display to screen
 	glfwSwapBuffers( window );
@@ -613,17 +627,32 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 
 	if (action == GLFW_PRESS)
 	{
-		if (is_start_page)
+		if (is_start_page || is_start_help_page)
 		{
 			if (key == GLFW_KEY_SPACE)
 			{
-				delete_game();
-				initialize_next_stage();
+				if (!is_start_help_page)
+				{
+					is_start_help_page = true;
+					close_start_page();
+					open_help_page();
+				}
+				else
+				{
+					is_start_help_page = false;
+					close_help_page();
+					delete_game();
+					initialize_next_stage();
+				}
 			}
+		}
+		else if (is_help_page)
+		{
+			
 		}
 		else {
 			if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)	glfwSetWindowShouldClose(window, GL_TRUE);
-			else if (key == GLFW_KEY_H || key == GLFW_KEY_F1)	print_help();
+			else if (key == GLFW_KEY_H || key == GLFW_KEY_F1) { open_help_page(); }
 			else if (key == GLFW_KEY_HOME)					camera->initialize();
 			else if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = true;
 			else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = true;
@@ -645,12 +674,23 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 	}
 	else if (action == GLFW_RELEASE)
 	{
-		if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = false;
-		else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = false;
-		else if (key == GLFW_KEY_W)	mov_key.up = false;
-		else if (key == GLFW_KEY_A)	mov_key.left = false;
-		else if (key == GLFW_KEY_S)	mov_key.down = false;
-		else if (key == GLFW_KEY_D)	mov_key.right = false;
+		if (is_start_page)
+		{
+
+		}
+		else if (is_help_page)
+		{
+			if (key == GLFW_KEY_H || key == GLFW_KEY_F1) close_help_page();
+		}
+		else
+		{
+			if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = false;
+			else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = false;
+			else if (key == GLFW_KEY_W)	mov_key.up = false;
+			else if (key == GLFW_KEY_A)	mov_key.left = false;
+			else if (key == GLFW_KEY_S)	mov_key.down = false;
+			else if (key == GLFW_KEY_D)	mov_key.right = false;
+		}
 	}
 }
 
@@ -723,6 +763,8 @@ void create_graphic_object()
 	clear_portal_texture_info = TextureBinder::bind("textures/clear.png");
 	enemy_texture_info = TextureBinder::bind("textures/enemy.png");
 	start_page_texture_info = TextureBinder::bind("textures/start_page.png");
+	help_page_texture_info = TextureBinder::bind("textures/help_page.png");
+
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
@@ -745,19 +787,12 @@ void initialize_next_stage()
 
 void initialize_start_page()
 {
-	is_start_page = true;
-	camera = new Camera();
-	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
-	mouse_position_history = new MousePositionHistory();
-	light = new Light(
-		vec4(0.0f, 0.0f, 100.0f, 1.0f),
-		vec4(1.0f, 1.0f, 1.0f, 1.0f),
-		vec4(0.8f, 0.8f, 0.8f, 1.0f),
-		vec4(0.5f, 0.5f, 0.5f, 1.0f)
-	);
+	start_page_image_renderer = new StartPageRenderer(plane_vertex_info, start_page_texture_info);
+}
 
-	StartPageRenderer* start_page_renderer = new StartPageRenderer(plane_vertex_info, start_page_texture_info);
-	renderers.push_back(start_page_renderer);
+void initialize_help_page()
+{
+	help_page_image_renderer = new StartPageRenderer(plane_vertex_info, help_page_texture_info);
 }
 
 void initialize_stage1()
@@ -973,6 +1008,26 @@ void delete_game()
 	is_start_page = false;
 }
 
+void open_start_page()
+{
+	is_start_page = true;
+}
+
+void close_start_page()
+{
+	is_start_page = false;
+}
+
+void open_help_page()
+{
+	is_help_page = true;
+}
+
+void close_help_page()
+{
+	is_help_page = false;
+}
+
 int main( int argc, char* argv[] )
 {
 	window_size = cg_default_window_size(); // initial window size
@@ -988,6 +1043,9 @@ int main( int argc, char* argv[] )
 	create_graphic_object();
 
 	initialize_start_page();
+	initialize_help_page();
+
+	open_start_page();
 
 	// register event callbacks
 	glfwSetWindowSizeCallback( window, reshape );	// callback for window resizing events
