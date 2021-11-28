@@ -23,7 +23,8 @@
 #include "PortalZVerticesBinder.h"
 #include "SphereVerticesBinder.h"
 #include "MousePositionHistory.h"
-#include "StartPageRenderer.h"
+#include "ImageRenderer.h"
+#include "FullImageRenderer.h"
 #include "PlaneVerticesBinder.h"
 
 //*************************************
@@ -126,6 +127,7 @@ Renderer* blue_portal_renderer = nullptr;
 Renderer* yellow_portal_renderer = nullptr;
 Renderer* start_page_image_renderer = nullptr;
 Renderer* help_page_image_renderer = nullptr;
+ImageRenderer* aim_renderer = nullptr;
 
 //*************************************
 void change_game_object_direction(GameAimingObject* game_object, vec2 mouse_path);
@@ -609,6 +611,12 @@ void render()
 		if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
 		if (blue_portal_renderer) blue_portal_renderer->render(program);
 		if (yellow_portal_renderer) yellow_portal_renderer->render(program);
+
+		if (aim_renderer)
+		{
+			aim_renderer->set_window_size(window_size);
+			aim_renderer->render(program);
+		}
 	}
 
 	// swap front and back buffers, and display to screen
@@ -821,12 +829,12 @@ void initialize_next_stage()
 
 void initialize_start_page()
 {
-	start_page_image_renderer = new StartPageRenderer(plane_vertex_info, start_page_texture_info);
+	start_page_image_renderer = new FullImageRenderer(plane_vertex_info, start_page_texture_info);
 }
 
 void initialize_help_page()
 {
-	help_page_image_renderer = new StartPageRenderer(plane_vertex_info, help_page_texture_info);
+	help_page_image_renderer = new FullImageRenderer(plane_vertex_info, help_page_texture_info);
 }
 
 void initialize_stage1()
@@ -1243,6 +1251,8 @@ int main( int argc, char* argv[] )
 
 	initialize_start_page();
 	initialize_help_page();
+
+	aim_renderer = new ImageRenderer(plane_vertex_info, start_page_texture_info, window_size, vec2(0.0f, 0.0f), vec2(0.1f, 0.1f), 0.0f);
 
 	open_start_page();
 

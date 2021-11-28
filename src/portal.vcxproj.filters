@@ -116,6 +116,12 @@
     <ClCompile Include="PlaneVerticesBinder.cpp">
       <Filter>Source Files\vertices_binder</Filter>
     </ClCompile>
+    <ClCompile Include="ImageRenderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="FullImageRenderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cgmath.h">
@@ -188,6 +194,12 @@
       <Filter>Header Files\vertices_binder</Filter>
     </ClInclude>
     <ClInclude Include="StartPageRenderer.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRenderer.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="FullImageRenderer.h">
       <Filter>Header Files\renderer</Filter>
     </ClInclude>
   </ItemGroup>
