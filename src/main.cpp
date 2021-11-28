@@ -777,7 +777,6 @@ void initialize_stage1()
 				BlockRenderer* blockRenderer = new BlockRenderer(portalz_vertex_info, clear_portal_texture_info, b, default_material);
 				renderers.push_back(blockRenderer);
 			}
-
 		}
 		else if (texture_type == 5) {
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
@@ -798,16 +797,23 @@ void initialize_stage2()
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI*1/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+
 	GameObject* plane;
 	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
 	blocks.push_back(plane);
-	plane = new GameObject({ -900.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 30.0f }, 0);
-	blocks.push_back(plane);
-	plane = new GameObject({ -650.0f, 0.0f, -300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 300.0f, 1000.0f, 30.0f }, 0);
-	blocks.push_back(plane);
+	GameObject* black_plane;
+	black_plane = new GameObject({ -50.0f, 0.0f, 170.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 200.0f, 30.0f }, 3);
+	blocks.push_back(black_plane);
 
+	GameObject* black_wall;
+	black_wall = new GameObject({ 200.0f, 100.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 10.0f, 200.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ 200.0f, -100.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 600.0f, 10.0f, 200.0f }, 3);
+	blocks.push_back(black_wall);
+	black_wall = new GameObject({ -150.0f, 0.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 200.0f, 200.0f }, 3);
+	blocks.push_back(black_wall);
 
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 150), { 0.0f, 0.0f, 1.0f }, PI, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
@@ -827,7 +833,31 @@ void initialize_stage2()
 			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
 			renderers.push_back(blockRenderer);
 		}
+		else if (texture_type == 3) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+		else if (texture_type == 4) {
+			if (b->get_up() == vec3(1, 0, 0) || b->get_up() == vec3(-1, 0, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalx_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 1, 0) || b->get_up() == vec3(0, -1, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portaly_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 0, 1) || b->get_up() == vec3(0, 0, -1)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalz_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+		}
+		else if (texture_type == 5) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
 	}
+
+
 }
 
 void next_level()
@@ -859,7 +889,20 @@ void next_level()
 	}
 
 	renderers.clear();
-	reset();
+	temp_portal_b = nullptr;
+	delete blue_portal_renderer;
+	blue_portal_renderer = nullptr;
+	temp_portal_o = nullptr;
+	delete yellow_portal_renderer;
+	yellow_portal_renderer = nullptr;
+	delete blue_bullet;
+	blue_bullet = nullptr;
+	delete blue_bullet_renderer;
+	blue_bullet_renderer = nullptr;
+	delete yellow_bullet;
+	yellow_bullet = nullptr;
+	delete yellow_bullet_renderer;
+	yellow_bullet_renderer = nullptr;
 	stage++;
 	if (stage == 1) {
 		initialize_stage1();
@@ -885,8 +928,8 @@ int main( int argc, char* argv[] )
 	window_size = cg_default_window_size(); // initial window size
 	
 	// create window and initialize OpenGL extensions
-	//if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
-	if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
+	if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
+	//if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
 	if (!cg_init_extensions(window)) { glfwTerminate(); return 1; }	// version and extensions
 	// initializations and validations
 	if(!(program=cg_create_program( vert_shader_path, frag_shader_path ))){ glfwTerminate(); return 1; }	// create and compile shaders/program
