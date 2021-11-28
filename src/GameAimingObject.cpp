@@ -12,5 +12,9 @@ float GameAimingObject::get_alpha()
 
 void GameAimingObject::set_alpha(float alpha)
 {
-	this->alpha = alpha;
+	float large_limit = PI / 2;
+	float small_limit = -PI * 40 / 90;
+	if (alpha > large_limit) this->alpha = large_limit;
+	else if (alpha < small_limit) this->alpha = small_limit;
+	else this->alpha = alpha;
 }
