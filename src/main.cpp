@@ -108,7 +108,7 @@ BindedTextureInfo* enemy_texture_info;
 BindedTextureInfo* start_page_texture_info;
 BindedTextureInfo* help_page_texture_info;
 BindedTextureInfo* end_page_texture_info;
-
+BindedTextureInfo* aim_texture_info;
 //*************************************
 
 GameAimingObject* sphere = nullptr;
@@ -435,7 +435,7 @@ void update()
 				b_time_catcher = true;
 			}
 			else {
-				if (current_time - b_timer > 0.7f) {
+				if (current_time - b_timer > 1.0f) {
 					delete blue_bullet;
 					blue_bullet = nullptr;
 					delete blue_bullet_renderer;
@@ -453,7 +453,7 @@ void update()
 				o_time_catcher = true;
 			}
 			else {
-				if (current_time - o_timer > 0.7f) {
+				if (current_time - o_timer > 1.0f) {
 					delete yellow_bullet;
 					yellow_bullet = nullptr;
 					delete yellow_bullet_renderer;
@@ -801,6 +801,8 @@ void create_graphic_object()
 	start_page_texture_info = TextureBinder::bind("textures/start_page.png");
 	help_page_texture_info = TextureBinder::bind("textures/help_page.png");
 	end_page_texture_info = TextureBinder::bind("textures/end_page.png");
+	aim_texture_info = TextureBinder::bind("textures/aim.png");
+
 
 	default_material = new Material(
 		vec4(0.5f, 0.5f, 0.5f, 1.0f),
@@ -1125,7 +1127,7 @@ void initial_end_stage() {
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI * 3 / 2, { 10.0f, 10.0f, 10.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 10.0f, 10.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
 	GameObject* plane;
@@ -1263,7 +1265,7 @@ int main( int argc, char* argv[] )
 	initialize_start_page();
 	initialize_help_page();
 
-	aim_renderer = new ImageRenderer(plane_vertex_info, start_page_texture_info, window_size, vec2(0.0f, 0.0f), vec2(0.1f, 0.1f), 0.0f);
+	aim_renderer = new ImageRenderer(plane_vertex_info,aim_texture_info, window_size, vec2(0.0f, 0.0f), vec2(0.1f, 0.1f), 0.0f);
 
 	open_start_page();
 
