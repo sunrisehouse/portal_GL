@@ -75,6 +75,7 @@ vec4 trans_vec;
 bool is_start_page = false;
 bool is_start_help_page = false;
 bool is_help_page = false;
+float moving_time;
 
 //*************************************
 // scene objects
@@ -133,6 +134,7 @@ void initialize_start_page();
 void initialize_stage1();
 void initialize_stage2();
 void initialize_stage3();
+void initial_end_stage();
 void delete_game();
 void reset();
 
@@ -231,9 +233,8 @@ void gravity_handler(float moving_time) {
 }
 
 void portal_dynamics(GameObject* from, GameObject* to) {
-	sphere->set_location(to->get_location() + 10.0f * to->get_up());
+	sphere->set_location(to->get_location() + (sphere->get_scale().z+14.0f)*to->get_up() );
 	portal_switch = false;
-
 	if (to->get_up() != vec3(0, 0, 1)) {
 		vec3 std_vec = vec3(0, 1, 0);
 		float delta_theta = (std_vec.x * to->get_up().y - std_vec.y * to->get_up().x) > 0.0f ?
@@ -263,10 +264,11 @@ void portal_dynamics(GameObject* from, GameObject* to) {
 bool find_collistion(GameObject* game_object, GameObject* block)
 {
 	vec3 loc = game_object->get_location();
+	vec3 scale = game_object->get_scale();
 	vec3 b_loc = block->get_location();
 	vec3 b_scale = block->get_scale();
 
-	if (abs(loc.x - b_loc.x) < b_scale.x / 2 && abs(loc.y - b_loc.y) < b_scale.y / 2 && abs(loc.z - b_loc.z) < b_scale.z / 2) return true;
+	if (abs(loc.x - b_loc.x) < b_scale.x / 2 + scale.x /2&& abs(loc.y - b_loc.y) < b_scale.y / 2 + scale.y / 2 && abs(loc.z - b_loc.z) < b_scale.z / 2 + scale.z / 2) return true;
 	return false;
 }
 
@@ -312,47 +314,53 @@ void collision_handler() {
 	{
 		vec3 b_loc = b->get_location();
 		vec3 b_scale = b->get_scale();
-		if (abs(loc.x - b_loc.x) < b_scale.x/2) {
-			if (abs(loc.y - b_loc.y) < b_scale.y/2) {
-				if (abs(loc.z - b_loc.z) < b_scale.z/2) {
-					if (b->get_type() == 0 || b->get_type() == 3) {
-						if (prev_loc.z - b_loc.z > b_scale.z/2) {
-							onGround = true;
-							upward_backup = upward_speed;
-							upward_speed = 0;
-							sphere->set_z(b_loc.z + b_scale.z/2 + 0.1f);
+		if ((b->get_type() == 1 || b->get_type() == 2) && temp_portal_o != nullptr && temp_portal_b != nullptr) {
+			if (abs(loc.x - b_loc.x) < b_scale.x/2 + sphere->get_scale().x + abs(b->get_up().x * 10.0f)) {
+				if (abs(loc.y - b_loc.y) < b_scale.y/2 + sphere->get_scale().y + abs(b->get_up().y * 10.0f)) {
+					if (abs(loc.z - b_loc.z) < b_scale.z/2 + sphere->get_scale().z + abs(b->get_up().z * 10.0f)) {
+						if (b->get_type() == 1 && temp_portal_o != nullptr && temp_portal_b != nullptr) {
+							if (portal_switch) {
+								portal_dynamics(b, temp_portal_o);
+								break;
+							}
+						}
+						else if (b->get_type() == 2 && temp_portal_b != nullptr && temp_portal_o != nullptr) {
+							if (portal_switch) {
+								portal_dynamics(b, temp_portal_b);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		else {
+			if (abs(loc.x - b_loc.x) < b_scale.x / 2 + sphere->get_scale().x) {
+				if (abs(loc.y - b_loc.y) < b_scale.y / 2 + sphere->get_scale().y) {
+					if (abs(loc.z - b_loc.z) < b_scale.z / 2 + sphere->get_scale().z) {
+						if (b->get_type() == 0 || b->get_type() == 3) {
+							if (prev_loc.z - b_loc.z > b_scale.z / 2 + sphere->get_scale().z) {
+								onGround = true;
+								upward_backup = upward_speed;
+								upward_speed = 0;
+								sphere->set_z(b_loc.z + b_scale.z / 2 + sphere->get_scale().z + 0.1f);
+								break;
+							}
+							else {
+								sphere->set_location(loc - moving_vector * 1.001f);
+							}
+						}
+						else if (b->get_type() == 4) {
+							sphere->set_theta(PI * 3 / 2);
+							delete_game();
+							initialize_next_stage();
 							break;
 						}
-						else {
-							sphere->set_location(loc - moving_vector * 1.001f);
-						}
-					}
-					else if (b->get_type() == 1 && temp_portal_o) {
-						if (portal_switch) {
-							portal_dynamics(b, temp_portal_o);
+						else if (b->get_type() == 5) {
+							reset();
 							break;
 						}
-						else {
-							sphere->set_location(loc - moving_vector * 1.001f);
-						}
-					}
-					else if (b->get_type() == 2 && temp_portal_b) {
-						if (portal_switch) {
-							portal_dynamics(b, temp_portal_b);
-							break;
-						}
-						else {
-							sphere->set_location(loc - moving_vector * 1.001f);
-						}
-					}
-					else if (b->get_type() == 4) {
-						delete_game();
-						initialize_next_stage();
-						break;
-					}
-					else if (b->get_type() == 5) {
-						reset();
-						break;
+
 					}
 				}
 			}
@@ -373,9 +381,9 @@ void reset()
 	sphere->set_location(initial_pos);
 	sphere->set_theta(PI*3/2);
 	temp_portal_b = nullptr;
+	temp_portal_o = nullptr;
 	delete blue_portal_renderer;
 	blue_portal_renderer = nullptr;
-	temp_portal_o = nullptr;
 	delete yellow_portal_renderer;
 	yellow_portal_renderer = nullptr;
 	delete blue_bullet;
@@ -386,13 +394,12 @@ void reset()
 	yellow_bullet = nullptr;
 	delete yellow_bullet_renderer;
 	yellow_bullet_renderer = nullptr;
-	//create_map();
 }
 
 void update()
 {
 	float current_time = float(glfwGetTime()) * 0.4f;
-	float moving_time = current_time - prev_time;
+	moving_time = current_time - prev_time;
 	prev_time = current_time;
 	if (!is_start_page && !is_help_page && !is_start_help_page)
 	{
@@ -424,7 +431,7 @@ void update()
 				b_time_catcher = true;
 			}
 			else {
-				if (current_time - b_timer > 0.8f) {
+				if (current_time - b_timer > 0.7f) {
 					delete blue_bullet;
 					blue_bullet = nullptr;
 					delete blue_bullet_renderer;
@@ -442,7 +449,7 @@ void update()
 				o_time_catcher = true;
 			}
 			else {
-				if (current_time - o_timer > 0.8f) {
+				if (current_time - o_timer > 0.7f) {
 					delete yellow_bullet;
 					yellow_bullet = nullptr;
 					delete yellow_bullet_renderer;
@@ -460,7 +467,7 @@ void update()
 			mouse_position_history->make_prev_position();
 		}
 		if (sphere->get_location().z < -500.0f) {
-			sphere->set_location(initial_pos);
+			reset();
 		}
 		dangle_canera_to_game_object(camera, sphere);
 		view_projection_matrix->change_view_matrix(*camera);
@@ -477,7 +484,7 @@ void update()
 				
 					temp_portal_b = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 1);
 					blocks.push_back(temp_portal_b);
-					if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1,0,0)) {
+;					if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1,0,0)) {
 						blue_portal_renderer = new BlockRenderer(portalx_vertex_info, blue_portal_texture_info, temp_portal_b, default_material);
 					}
 					else if (portal_up == vec3(0, 1, 0) || portal_up == vec3(0, -1, 0)) {
@@ -519,7 +526,6 @@ void update()
 					vec3 portal_up = find_collision_n_of_block(yellow_bullet, block);
 					vec3 portal_location = yellow_bullet->get_location() - yellow_bullet->get_location() * portal_up * portal_up + block->get_location() * portal_up * portal_up + portal_up * block->get_scale() / 2 + portal_up * vec3(2.5f, 2.5f, 2.5f);
 					vec3 portal_scale = vec3(80.0f, 80.0f, 80.0f) - portal_up * portal_up * vec3(75.0f, 75.0f, 75.0f);
-
 					temp_portal_o = new GameObject(portal_location, portal_up, 0.0f, portal_scale, 2);
 					blocks.push_back(temp_portal_o);
 					if (portal_up == vec3(1, 0, 0) || portal_up == vec3(-1, 0, 0)) {
@@ -621,9 +627,8 @@ void print_help()
 {
 	printf( "[help]\n" );
 	printf( "- press ESC or 'q' to terminate the program\n" );
-	printf( "- press F1 or 'h' to see help\n" );
-	printf( "- press Home to reset camera\n" );
-	printf("- press 'w' to toggle wireframe\n");
+	printf("- press F1 to see help\n");
+	printf("- press r to reset stage\n");
 	printf( "\n" );
 }
 
@@ -650,6 +655,7 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 					initialize_next_stage();
 				}
 			}
+			else if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)	glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		else if (is_help_page)
 		{
@@ -658,7 +664,6 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 		else {
 			if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)	glfwSetWindowShouldClose(window, GL_TRUE);
 			else if (key == GLFW_KEY_H || key == GLFW_KEY_F1) { open_help_page(); }
-			else if (key == GLFW_KEY_HOME)					camera->initialize();
 			else if (key == GLFW_KEY_LEFT_SHIFT) is_left_shift_pressed = true;
 			else if (key == GLFW_KEY_LEFT_CONTROL) is_left_ctrl_pressed = true;
 			else if (key == GLFW_KEY_R)	reset();
@@ -679,7 +684,7 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 	}
 	else if (action == GLFW_RELEASE)
 	{
-		if (is_start_page)
+		if (is_start_page || is_start_help_page)
 		{
 
 		}
@@ -701,34 +706,50 @@ void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 
 void mouse( GLFWwindow* window, int button, int action, int mods )
 {
-	if(button==GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && blue_bullet == nullptr && blue_bullet_renderer == nullptr)
-	{
-		delete blue_portal_renderer;
-		blue_portal_renderer = nullptr;
-		temp_portal_b = nullptr;
-		blue_bullet_switch = false;
-		vec3 location = camera->get_eye();
-		vec3 moving_direction = camera->get_at() - location;
-		blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * 0.01f);
-		blue_bullet_renderer = new SphereRenderer(sphere_vertex_info, blue_bullet_texture_info, blue_bullet, default_material);
+	if (is_start_page || is_start_help_page) {
+
 	}
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && yellow_bullet == nullptr && yellow_bullet_renderer == nullptr)
-	{
-		delete yellow_portal_renderer;
-		yellow_portal_renderer = nullptr;
-		temp_portal_o = nullptr;
-		orange_bullet_switch = false;
-		vec3 location = camera->get_eye();
-		vec3 moving_direction = camera->get_at() - location;
-		yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * 0.01f);
-		yellow_bullet_renderer = new SphereRenderer(sphere_vertex_info, orange_bullet_texture_info, yellow_bullet, default_material);
+	else if (is_help_page) {
+
 	}
+	else {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && blue_bullet == nullptr && blue_bullet_renderer == nullptr)
+		{
+			delete blue_portal_renderer;
+			blue_portal_renderer = nullptr;
+			temp_portal_b = nullptr;
+			blue_bullet_switch = false;
+			vec3 location = camera->get_eye();
+			vec3 moving_direction = camera->get_at() - location;
+			blue_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * moving_time * 2.5);
+			blue_bullet_renderer = new SphereRenderer(sphere_vertex_info, blue_bullet_texture_info, blue_bullet, default_material);
+		}
+		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && yellow_bullet == nullptr && yellow_bullet_renderer == nullptr)
+		{
+			delete yellow_portal_renderer;
+			yellow_portal_renderer = nullptr;
+			temp_portal_o = nullptr;
+			orange_bullet_switch = false;
+			vec3 location = camera->get_eye();
+			vec3 moving_direction = camera->get_at() - location;
+			yellow_bullet = new GameMovingObject(location, { 0.0f, 0.0f, 1.0f }, 0.0f, { 3.0f, 3.0f, 3.0f }, 0, moving_direction * moving_time * 2.5);
+			yellow_bullet_renderer = new SphereRenderer(sphere_vertex_info, orange_bullet_texture_info, yellow_bullet, default_material);
+		}
+	} 
 }
 
 void motion( GLFWwindow* window, double x, double y )
 {
-	vec2 current_position = cursor_to_ndc(dvec2(x, y), window_size);
-	mouse_position_history->change_position(current_position);
+	if (is_start_page || is_start_help_page) {
+
+	}
+	else if (is_help_page) {
+
+	}
+	else {
+		vec2 current_position = cursor_to_ndc(dvec2(x, y), window_size);
+		mouse_position_history->change_position(current_position);
+	}
 }
 
 void user_init()
@@ -792,6 +813,9 @@ void initialize_next_stage()
 	{
 		initialize_stage3();
 	}
+	else {
+		initial_end_stage();
+	}
 }
 
 void initialize_start_page()
@@ -818,18 +842,18 @@ void initialize_stage1()
 	);
 
 	GameObject* plane;
-	plane = new GameObject({ 0.0f, 0.0f, -37.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 50.0f }, 0);
+	plane = new GameObject({ 0.0f, 0.0f, -40.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 50.0f }, 0);
 	blocks.push_back(plane);
-	plane = new GameObject({ -900.0f, 0.0f, -37.5f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 50.0f }, 0);
+	plane = new GameObject({ -900.0f, 0.0f, -40.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 1000.0f, 50.0f }, 0);
 	blocks.push_back(plane);
 
 
 	GameObject* box;
 	box = new GameObject({ 200.0f, 100.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 20.0f }, 0);
 	blocks.push_back(box);
-	box = new GameObject({ -200.0f, -100.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 80.0f }, 0);
+	box = new GameObject({ -200.0f, -100.0f, 20.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 80.0f }, 0);
 	blocks.push_back(box);
-	box = new GameObject({ 200.0f, -100.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 80.0f }, 0);
+	box = new GameObject({ 200.0f, -100.0f, 20.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 150.0f, 80.0f }, 0);
 	blocks.push_back(box);
 
 	GameObject* wall;
@@ -846,14 +870,14 @@ void initialize_stage1()
 	GameObject* black_wall;
 	black_wall = new GameObject({ -795.0f, 0.0f, -165.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 1000.0f, 300.0f }, 3);
 	blocks.push_back(black_wall);
-	black_wall = new GameObject({ -505.0f, 0.0f, -165.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 1000.0f, 300.0f }, 3);
+	black_wall = new GameObject({ -505.0f, 0.0f, -165.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 1000.0f, 300.0f }, 3);
 	blocks.push_back(black_wall);
 
 	GameObject* goal;
 	goal = new GameObject({ -970.0f, 0.0f, 30.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
 	blocks.push_back(goal);
 
-	sphere = new GameAimingObject(initial_pos, { 0.0f, 0.0f, 1.0f }, PI*3/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	sphere = new GameAimingObject(initial_pos, { 0.0f, 0.0f, 1.0f }, PI*3/2, { 10.0f, 10.0f, 10.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
@@ -902,16 +926,20 @@ void initialize_stage2()
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI*3/2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI*3/2, { 10.0f, 10.0f, 10.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
 
 	GameObject* plane;
 	plane = new GameObject({ 200.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 500.0f, 30.0f }, 0);
 	blocks.push_back(plane);
-	plane = new GameObject({ -100.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 0);
+	plane = new GameObject({ -110.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 180.0f, 500.0f, 30.0f }, 0);
 	blocks.push_back(plane);
+
+
 	GameObject* black_plane;
+	black_plane = new GameObject({ -17.5f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 10.0f, 500.0f, 32.0f }, 3);
+	blocks.push_back(black_plane);
 	black_plane = new GameObject({ -100.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 3);
 	blocks.push_back(black_plane);
 	black_plane = new GameObject({ 520.0f, 0.0f, 280.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 400.0f, 500.0f, 30.0f }, 3);
@@ -974,64 +1002,72 @@ void initialize_stage3()
 	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
 	mouse_position_history = new MousePositionHistory();
 	light = new Light(
-		vec4(0.0f, 0.0f, 100.0f, 1.0f),
+		vec4(400.0f, 0.0f, 200.0f, 1.0f),
 		vec4(1.0f, 1.0f, 1.0f, 1.0f),
 		vec4(0.8f, 0.8f, 0.8f, 1.0f),
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI * 3 / 2, { 20.0f, 20.0f, 20.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI * 3 / 2, { 10.0f, 10.0f, 10.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
 	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
 	renderers.push_back(sphereRenderer);
 
 	GameObject* plane;
-	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 1000.0f, 30.0f }, 0);
+	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 600.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	plane = new GameObject({ 750.0f, 0.0f, 170.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 500.0f, 600.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	plane = new GameObject({ 2100.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 500.0f, 600.0f, 30.0f }, 0);
 	blocks.push_back(plane);
 
 	GameObject* enemy;
-	enemy = new GameObject({ 200.0f, 200.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
+	enemy = new GameObject({ 300.0f, 200.0f, 30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
 	blocks.push_back(enemy);
 
+
+
 	GameObject* wall;
-	wall = new GameObject({ -50.0f, 0.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 530.0f }, 0);
+	wall = new GameObject({ -50.0f, 0.0f, 220.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 530.0f }, 0);
 	blocks.push_back(wall);
-	wall = new GameObject({ 500.0f, 0.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 200.0f }, 0);
+	wall = new GameObject({ 500.0f, 0.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 200.0f }, 0);
 	blocks.push_back(wall);
-	wall = new GameObject({ 500.0f, 250.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 1000.0f, 200.0f }, 0);
+	wall = new GameObject({ 500.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 200.0f, 200.0f }, 0);
 	blocks.push_back(wall);
 
-	wall = new GameObject({ 500.0f, 500.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 2000.0f, 30.0f, 830.0f }, 0);
+	wall = new GameObject({ 500.0f, 300.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1500.0f, 30.0f, 830.0f }, 0);
 	blocks.push_back(wall);
-	wall = new GameObject({ 500.0f, -500.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 2000.0f, 30.0f, 830.0f }, 0);
+	wall = new GameObject({ 500.0f, -300.0f, 70.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1500.0f, 30.0f, 830.0f }, 0);
 	blocks.push_back(wall);
-	/*
-	plane = new GameObject({ -100.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 0);
-	blocks.push_back(plane);
-	GameObject* black_plane;
-	black_plane = new GameObject({ -100.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 200.0f, 500.0f, 30.0f }, 3);
-	blocks.push_back(black_plane);
-	black_plane = new GameObject({ 520.0f, 0.0f, 280.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 400.0f, 500.0f, 30.0f }, 3);
-	blocks.push_back(black_plane);
-	black_plane = new GameObject({ 200.0f, 0.0f, 670.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 1000.0f, 500.0f, 30.0f }, 3);
-	blocks.push_back(black_plane);
 
+	wall = new GameObject({ 1000.0f, 0.0f, 300.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 300.0f, 800.0f }, 0);
+	blocks.push_back(wall);
 
+	wall = new GameObject({ 2350.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 600.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 2150.0f, -300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 2150.0f, 300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
+	blocks.push_back(wall);
 
-	GameObject* black_wall;
-	black_wall = new GameObject({ 225.0f, 200.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 800.0f, 10.0f, 700.0f }, 3);
-	blocks.push_back(black_wall);
-	black_wall = new GameObject({ 225.0f, -200.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 800.0f, 10.0f, 700.0f }, 3);
-	blocks.push_back(black_wall);
-	black_wall = new GameObject({ -150.0f, 0.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 500.0f, 700.0f }, 3);
-	blocks.push_back(black_wall);
-	black_wall = new GameObject({ 600.0f, 0.0f, 320.0f }, { 0.0f, 0.0f, 1.0f }, PI, { 10.0f, 500.0f, 700.0f }, 3);
-	blocks.push_back(black_wall);
+	GameObject* black_box;
+	GameObject* box;
+
+	//
+	black_box = new GameObject({ 1200.0f, 0.0f, 50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 3);
+	blocks.push_back(black_box);
+	enemy = new GameObject({ 1300.0f, 0.0f, 50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
+	blocks.push_back(enemy);
+	box = new GameObject({ 1400.0f, 0.0f, 50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 0);
+	blocks.push_back(box);
+	enemy = new GameObject({ 1500.0f, 0.0f, 50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
+	blocks.push_back(enemy);
+	enemy = new GameObject({ 1600.0f, 0.0f, 50.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 100.0f, 100.0f, 100.0f }, 5);
+	blocks.push_back(enemy);
 
 	GameObject* goal;
-	goal = new GameObject({ 520.0f, 0.0f, 360.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
+	goal = new GameObject({ 2200.0f, 0.0f, 40.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f, { 10.0f, 80.0f, 120.0f }, 4);
 	blocks.push_back(goal);
 
-	*/
 	
 
 	for (auto& b : blocks) {
@@ -1063,8 +1099,63 @@ void initialize_stage3()
 			renderers.push_back(blockRenderer);
 		}
 	}
+}
 
-
+void initial_end_stage() {
+	stage = 4;
+	camera = new Camera();
+	view_projection_matrix = new ViewProjectionMatrix(window_size, *camera);
+	mouse_position_history = new MousePositionHistory();
+	light = new Light(
+		vec4(0.0f, 0.0f, 270.0f, 1.0f),
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		vec4(0.8f, 0.8f, 0.8f, 1.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+	sphere = new GameAimingObject(initial_pos + vec3(0, 0, 0), { 0.0f, 0.0f, 1.0f }, PI * 3 / 2, { 10.0f, 10.0f, 10.0f }, 0, vec3(0.0f, 0.0f, 0.0f), 0.0f);
+	SphereRenderer* sphereRenderer = new SphereRenderer(sphere_vertex_info, box_texture_info, sphere, default_material);
+	renderers.push_back(sphereRenderer);
+	GameObject* plane;
+	plane = new GameObject({ 0.0f, 0.0f, -30.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 600.0f, 30.0f }, 0);
+	blocks.push_back(plane);
+	GameObject* wall;
+	//wall = new GameObject({ 300.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 600.0f }, 0);
+	//blocks.push_back(wall);
+	wall = new GameObject({ -300.0f, 0.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 30.0f, 600.0f, 600.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 0.0f, -300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
+	blocks.push_back(wall);
+	wall = new GameObject({ 0.0f, 300.0f, 270.0f }, { 0.0f, 0.0f, 1.0f }, 0.0f, { 600.0f, 30.0f, 600.0f }, 0);
+	blocks.push_back(wall);
+	for (auto& b : blocks) {
+		int texture_type = b->get_type();
+		if (texture_type == 0) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+		else if (texture_type == 3) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, black_box_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+		else if (texture_type == 4) {
+			if (b->get_up() == vec3(1, 0, 0) || b->get_up() == vec3(-1, 0, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalx_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 1, 0) || b->get_up() == vec3(0, -1, 0)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portaly_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+			else if (b->get_up() == vec3(0, 0, 1) || b->get_up() == vec3(0, 0, -1)) {
+				BlockRenderer* blockRenderer = new BlockRenderer(portalz_vertex_info, clear_portal_texture_info, b, default_material);
+				renderers.push_back(blockRenderer);
+			}
+		}
+		else if (texture_type == 5) {
+			BlockRenderer* blockRenderer = new BlockRenderer(block_vertex_info, enemy_texture_info, b, default_material);
+			renderers.push_back(blockRenderer);
+		}
+	}
 }
 
 void delete_game()
@@ -1138,7 +1229,7 @@ void close_help_page()
 int main( int argc, char* argv[] )
 {
 	window_size = cg_default_window_size(); // initial window size
-	
+	window_size = ivec2(960, 720);
 	// create window and initialize OpenGL extensions
 	if(!(window = cg_create_window( window_name, window_size.x, window_size.y))){ glfwTerminate(); return 1; }
 	//if (!(window = glfwCreateWindow(1280, 960, window_name, glfwGetPrimaryMonitor(), NULL))) { glfwTerminate(); return 1; }
