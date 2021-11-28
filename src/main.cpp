@@ -569,16 +569,19 @@ void render()
 		glUniform4fv(glGetUniformLocation(program, "Ia"), 1, light->get_ambient());
 		glUniform4fv(glGetUniformLocation(program, "Id"), 1, light->get_diffuse());
 		glUniform4fv(glGetUniformLocation(program, "Is"), 1, light->get_specular());
-
-		if (blue_bullet_renderer) blue_bullet_renderer->render(program);
-		if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
-		if (blue_portal_renderer) blue_portal_renderer->render(program);
-		if (yellow_portal_renderer) yellow_portal_renderer->render(program);
 	}
 
 	for (auto& renderer : renderers)
 	{
 		renderer->render(program);
+	}
+
+	if (!is_start_page)
+	{
+		if (blue_bullet_renderer) blue_bullet_renderer->render(program);
+		if (yellow_bullet_renderer) yellow_bullet_renderer->render(program);
+		if (blue_portal_renderer) blue_portal_renderer->render(program);
+		if (yellow_portal_renderer) yellow_portal_renderer->render(program);
 	}
 	
 
