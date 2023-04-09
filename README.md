@@ -4,12 +4,12 @@
 
 <div>
   <div style="display:flex">
-    <img style="width: 50%" src="./images/gameplay1.gif" />
-    <img style="width: 50%" src="./images/gameplay2.gif" />
+    <img style="width: 50%" src="https://github.com/sunrisehouse/portal_GL/blob/main/images/gameplay1.gif?raw=true" />
+    <img style="width: 50%" src="https://github.com/sunrisehouse/portal_GL/blob/main/images/gameplay2.gif?raw=true" />
   </div>
   <div style="display:flex">
-    <img style="width: 50%" src="./images/gameplay3.gif" />
-    <img style="width: 50%" src="./images/gameplay4.gif" />
+    <img style="width: 50%" src="https://github.com/sunrisehouse/portal_GL/blob/main/images/gameplay3.gif?raw=true" />
+    <img style="width: 50%" src="https://github.com/sunrisehouse/portal_GL/blob/main/images/gameplay4.gif?raw=true" />
   </div>
 </div>
 
