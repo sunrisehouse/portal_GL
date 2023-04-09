@@ -2,17 +2,8 @@
 
 ## Demo Play Video
 
-<div>
-  <div style="display:flex">
-    <img style="width: 50%" src="./images/gameplay1.gif" />
-    <img style="width: 50%" src="./images/gameplay2.gif" />
-  </div>
-  <div style="display:flex">
-    <img style="width: 50%" src="./images/gameplay3.gif" />
-    <img style="width: 50%" src="./images/gameplay4.gif" />
-  </div>
-</div>
-
+![gameplay2](./images/gameplay2.gif)
+![gameplay4](./images/gameplay4.gif)
 
 ## 1. Game Introduction
 This game is a game in which the main character escapes the map using a portal gun. There are two portals, Blue and Orange. The two portals are connected, so if you pass through one portal, you can go to the other. Use the portal to avoid obstacles and escape the map.
